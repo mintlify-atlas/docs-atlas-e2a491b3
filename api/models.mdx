@@ -1,0 +1,229 @@
+---
+title: 'Data models — Video, Program, Sponsor, Profile'
+description: 'Field reference for the Estudio Radio América API data models: Video, Program, Sponsor, and UserProfile — including the sponsored podcast URL array format.'
+---
+
+This page documents all fields for every data model returned or accepted by the Estudio Radio América API. Use these definitions when building integrations or interpreting API responses.
+
+---
+
+## Video
+
+Represents a single piece of content — a video episode, audio podcast, short reel, or live stream.
+
+<ResponseField name="id" type="string" required>
+  Unique identifier. Assigned by the server as `Date.now().toString()` at creation time.
+</ResponseField>
+
+<ResponseField name="title" type="string" required>
+  Display title shown on the homepage, watch page, and admin library.
+</ResponseField>
+
+<ResponseField name="category" type="string" required>
+  Content category. One of: `Historia`, `Personajes`, `Documentales`, `Sociedad`, `Deportes`, `Cultura`, `Política`.
+</ResponseField>
+
+<ResponseField name="thumbnail" type="string" required>
+  URL or base64 data URI for the episode cover image.
+</ResponseField>
+
+<ResponseField name="description" type="string" required>
+  Short description displayed under the episode title.
+</ResponseField>
+
+<ResponseField name="url" type="string" required>
+  Media URL. For most episodes this is a YouTube link, direct MP4/M3U8, or a URL from [POST /api/upload](/api/media-upload). For sponsored audio episodes this is a JSON-encoded array — see [Sponsored URL format](#sponsored-url-format) below.
+</ResponseField>
+
+<ResponseField name="duration" type="string" required>
+  Human-readable duration string, e.g. `"45:30"`. Use `"00:00"` as a placeholder for live streams.
+</ResponseField>
+
+<ResponseField name="views" type="number" required>
+  Cumulative view count. Incremented by [POST /api/videos/:id/view](/api/videos#post-api-videos-id-view).
+</ResponseField>
+
+<ResponseField name="createdAt" type="string" required>
+  ISO 8601 timestamp set by the server at creation time.
+</ResponseField>
+
+<ResponseField name="isFeatured" type="boolean" required>
+  When `true`, the episode appears in the hero carousel on the homepage.
+</ResponseField>
+
+<ResponseField name="isLive" type="boolean">
+  When `true`, the episode is treated as a live broadcast. Live episodes take priority over featured episodes in the hero carousel.
+</ResponseField>
+
+<ResponseField name="isShort" type="boolean">
+  When `true`, the episode appears in the vertical Shorts & Reels feed instead of the main grid.
+</ResponseField>
+
+<ResponseField name="isAudio" type="boolean">
+  When `true`, the episode is rendered with an audio player. The admin UI sets this automatically when an audio file is uploaded.
+</ResponseField>
+
+<ResponseField name="programId" type="string">
+  ID of the parent [Program](#program). Empty string or absent for standalone episodes.
+</ResponseField>
+
+<ResponseField name="releaseDate" type="string">
+  ISO 8601 date string for a scheduled future release. Episodes with a future date appear in the "Próximos Estrenos" section on the homepage.
+</ResponseField>
+
+<ResponseField name="pressNoteUrl" type="string">
+  URL to an external press note or article. Displayed as a "Lea la nota completa aquí" button on the hero section.
+</ResponseField>
+
+---
+
+## Program
+
+Represents a radio show or podcast series that groups related episodes.
+
+<ResponseField name="id" type="string" required>
+  Unique identifier. Assigned by the server at creation time.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Display name of the show or podcast series.
+</ResponseField>
+
+<ResponseField name="category" type="string" required>
+  Category label used for filtering. Typically one of the video categories.
+</ResponseField>
+
+<ResponseField name="thumbnail" type="string" required>
+  URL or base64 data URI for the program poster (portrait aspect ratio recommended).
+</ResponseField>
+
+<ResponseField name="type" type="string" required>
+  Must be exactly `"Programa"` or `"Podcast"`. Controls the badge shown on the detail page.
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Full description displayed on the program detail page.
+</ResponseField>
+
+<ResponseField name="schedule" type="string">
+  Human-readable broadcast schedule, e.g. `"Lunes a Viernes, 10:00 AM"`.
+</ResponseField>
+
+<ResponseField name="host" type="string">
+  Name of the program host or hosts.
+</ResponseField>
+
+<ResponseField name="coverImage" type="string">
+  URL or base64 data URI for a wide banner image. Landscape aspect ratio recommended.
+</ResponseField>
+
+---
+
+## Sponsor
+
+Represents a single ad audio file (cuña) in the centralized sponsor library.
+
+<ResponseField name="id" type="string" required>
+  Unique identifier. The admin UI uses `Date.now().toString()`.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Human-readable label for the ad, e.g. `"Promo Coca-Cola Junio"`.
+</ResponseField>
+
+<ResponseField name="url" type="string" required>
+  Public URL of the uploaded audio file. Obtained from [POST /api/upload](/api/media-upload).
+</ResponseField>
+
+<ResponseField name="programId" type="string">
+  Optional ID of the associated program. Empty string means the sponsor is "Global" and can be used with any episode.
+</ResponseField>
+
+<ResponseField name="createdAt" type="string" required>
+  ISO 8601 timestamp set at registration time.
+</ResponseField>
+
+---
+
+## UserProfile
+
+Holds the station identity shown publicly on the homepage and used in the admin sidebar.
+
+<ResponseField name="firstName" type="string" required>
+  First name of the station host or primary brand name component.
+</ResponseField>
+
+<ResponseField name="lastName" type="string" required>
+  Last name or secondary brand label.
+</ResponseField>
+
+<ResponseField name="avatar" type="string" required>
+  URL or base64 data URI for the profile image. Displayed in the admin sidebar and profile section.
+</ResponseField>
+
+<ResponseField name="bio" type="string">
+  Short biography or station description.
+</ResponseField>
+
+<ResponseField name="twitter" type="string">
+  Twitter/X handle (e.g. `@RadioAmericaVE`) or full profile URL. Social button appears only when non-empty.
+</ResponseField>
+
+<ResponseField name="instagram" type="string">
+  Instagram handle (e.g. `@radioamericave`) or full profile URL. Social button appears only when non-empty.
+</ResponseField>
+
+<ResponseField name="youtube" type="string">
+  Full YouTube channel URL. Social button appears only when non-empty.
+</ResponseField>
+
+<ResponseField name="facebook" type="string">
+  Full Facebook page URL. Social button appears only when non-empty.
+</ResponseField>
+
+---
+
+## Sponsored URL format
+
+When an audio episode (`isAudio: true`) is sponsored, the `url` field stores a JSON-encoded array rather than a plain string. The array is structured as follows:
+
+```
+[sponsorUrl1, sponsorUrl2, ..., episodeUrl]
+```
+
+- **Sponsor URLs** occupy all positions except the last. Each is the public URL of an uploaded cuña audio file.
+- **Episode URL** is always the final element in the array.
+
+**Example:**
+
+```json
+[
+  "https://your-domain.com/media/promo-a.mp3",
+  "https://your-domain.com/media/promo-b.mp3",
+  "https://your-domain.com/media/episode.mp3"
+]
+```
+
+The player reads this array, plays each sponsor track in order, then plays the main episode. A plain string URL (i.e. a value that is not valid JSON or is not an array) indicates the episode has no sponsors.
+
+When parsing a video record for editing, the admin panel detects this format with `JSON.parse(video.url)` and checks `Array.isArray(result)` before splitting the URL into individual parts.
+
+<Note>
+  Only audio episodes (`isAudio: true`) use the JSON array format. Video episodes always store a plain URL string in the `url` field.
+</Note>
+
+---
+
+## Categories enum
+
+The following category values are used by both the Video and Program models. The admin UI offers these as a dropdown list:
+
+| Value | Description |
+|---|---|
+| `Historia` | Historical content and archive material |
+| `Personajes` | Personality profiles and interviews |
+| `Documentales` | Documentary-style long-form content |
+| `Sociedad` | Society, community, and human interest |
+| `Deportes` | Sports coverage and commentary |
+| `Cultura` | Arts, culture, and entertainment |
+| `Política` | Political news and analysis |

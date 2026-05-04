@@ -1,0 +1,199 @@
+---
+title: "Deploy Estudio Radio América with Docker"
+description: "Build and run Estudio Radio América with Docker: multi-stage Dockerfile, Nginx config, VITE_API_URL build argument, and container run commands."
+---
+
+Estudio Radio América ships with a multi-stage `Dockerfile` and an Nginx configuration file that together produce a small, production-ready container image. This page walks through building the image, setting environment variables, and running the container.
+
+## Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) installed on your machine or server.
+- The Node.js backend API running and reachable (defaults to port `3005`).
+- (Optional) A `VITE_API_URL` value if your API is not on the same host as the frontend.
+
+## Environment variables
+
+The only build-time environment variable required by the frontend is `VITE_API_URL`. Its default resolution logic is defined in `src/VideoContext.tsx`:
+
+```ts
+export const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.MODE === 'production' ? '/api' : 'http://localhost:3005/api');
+```
+
+| Variable | Default (production) | Description |
+|---|---|---|
+| `VITE_API_URL` | `/api` | Full URL or relative path to the backend API. When left unset in production mode, Nginx proxies `/api/` requests to `localhost:3005`. |
+
+<Info>
+  Because Vite inlines environment variables at build time, `VITE_API_URL` must be passed as a build argument (`--build-arg`) to `docker build`, not as a runtime environment variable.
+</Info>
+
+## How the Dockerfile works
+
+The build uses two stages to keep the final image small:
+
+```dockerfile
+# ---- Stage 1: Build ----
+FROM node:20-alpine AS build
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build          # runs: tsc -b && vite build
+
+# ---- Stage 2: Serve ----
+FROM nginx:stable-alpine
+
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+RUN mkdir -p /var/cache/nginx /var/run /var/log/nginx && \
+    chmod -R 777 /var/cache/nginx /var/run /var/log/nginx && \
+    chown -R nginx:nginx /var/cache/nginx /var/run /var/log/nginx
+
+EXPOSE 80
+```
+
+- **Stage 1** (`node:20-alpine`) installs dependencies and runs `npm run build`, which executes `tsc -b && vite build` to produce static files in `/app/dist`.
+- **Stage 2** (`nginx:stable-alpine`) copies only the built `dist/` folder and the custom `nginx.conf` into a lean Nginx image. The Node.js runtime is not included in the final image.
+
+## Nginx configuration
+
+The included `nginx.conf` configures Nginx to:
+
+- Serve static files and handle React Router client-side navigation via `try_files`.
+- Proxy `/api/` requests to the Node.js backend at `127.0.0.1:3005`.
+- Proxy `/uploads/` (uploaded video files) to the same backend with buffering disabled for smooth video streaming.
+
+```nginx
+server {
+  listen 8084;
+  server_name _;
+  client_max_body_size 0;  # no upload size limit
+
+  location / {
+    root   /usr/share/nginx/html;
+    index  index.html index.htm;
+    try_files $uri $uri/ /index.html;
+  }
+
+  location /api/ {
+    proxy_pass http://127.0.0.1:3005;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_request_buffering off;
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    proxy_connect_timeout 86400s;
+    proxy_send_timeout    86400s;
+    proxy_read_timeout    86400s;
+  }
+
+  location /uploads/ {
+    proxy_pass http://127.0.0.1:3005;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_buffering off;
+    proxy_cache    off;
+  }
+}
+```
+
+<Warning>
+  The Nginx server listens on port **8084** inside the container, not port 80. Map accordingly when running the container (see the `docker run` command below).
+</Warning>
+
+## Deploy the container
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/DervisMartinez/estudioradioamericacomve.git
+    cd estudioradioamericacomve
+    ```
+  </Step>
+
+  <Step title="Build the Docker image">
+    Run `docker build` from the project root. Pass `VITE_API_URL` as a build argument if your API is hosted at a different origin than the frontend.
+
+    <CodeGroup>
+      ```bash Same-host deployment (default)
+      docker build -t estudio-radio-america .
+      ```
+
+      ```bash External API URL
+      docker build \
+        --build-arg VITE_API_URL=https://api.example.com/api \
+        -t estudio-radio-america .
+      ```
+    </CodeGroup>
+
+    The build runs `npm install` and then `tsc -b && vite build` inside the container. Expect this to take 1–3 minutes on first run.
+  </Step>
+
+  <Step title="Run the container">
+    Map port `8084` (the Nginx listener inside the container) to the host port of your choice. The example below exposes the site on host port `8084`.
+
+    <CodeGroup>
+      ```bash Standard run
+      docker run -d \
+        --name estudio-radio-america \
+        -p 8084:8084 \
+        estudio-radio-america
+      ```
+
+      ```bash Expose on host port 80
+      docker run -d \
+        --name estudio-radio-america \
+        -p 80:8084 \
+        estudio-radio-america
+      ```
+    </CodeGroup>
+
+    After the container starts, open `http://localhost:8084` (or whichever host port you mapped) in a browser to verify the platform loads.
+  </Step>
+
+  <Step title="Verify the deployment">
+    Check that the container is running and review Nginx logs if the page does not load:
+
+    ```bash
+    docker ps
+    docker logs estudio-radio-america
+    ```
+
+    A successful startup will show Nginx logging requests for `index.html` and static assets.
+  </Step>
+</Steps>
+
+## Available build scripts
+
+These scripts are defined in `package.json` and are used during the Docker build or for local development:
+
+| Script | Command | Purpose |
+|---|---|---|
+| `npm run build` | `tsc -b && vite build` | Type-check and produce the production bundle in `dist/` |
+| `npm run dev` | `vite` | Start the Vite dev server at `http://localhost:5173` (hot-reload) |
+| `npm run preview` | `vite preview` | Serve the production build locally for pre-deploy verification |
+
+<Note>
+  `npm run dev` and `npm run preview` are for local development only and are not used inside the Docker container. The container always uses the pre-built `dist/` folder served by Nginx.
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Environment variables" icon="sliders" href="/configuration/environment">
+    Full reference for all `VITE_*` variables and how to set them.
+  </Card>
+  <Card title="Nginx configuration" icon="server" href="/configuration/nginx">
+    Detailed explanation of the proxy rules, timeouts, and upload size settings.
+  </Card>
+  <Card title="Firebase configuration" icon="database" href="/configuration/firebase">
+    Set up Firebase Authentication and Firestore for the admin dashboard.
+  </Card>
+  <Card title="Platform overview" icon="circle-info" href="/introduction">
+    Return to the introduction for a high-level view of the full platform.
+  </Card>
+</CardGroup>

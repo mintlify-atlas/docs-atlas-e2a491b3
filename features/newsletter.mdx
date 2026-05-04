@@ -1,0 +1,105 @@
+---
+title: "Newsletter subscription and email updates"
+description: "How the Estudio Radio América newsletter subscription form works, including the API endpoint, success and error responses, and terms acceptance notice."
+---
+
+The newsletter feature lets visitors subscribe to email updates directly from the Estudio Radio América home page. This page explains the subscription form, the responses users will see, and the API endpoint used by the form — useful for content managers verifying behaviour and developers integrating with the subscription system.
+
+## Subscription form
+
+The newsletter section sits at the **bottom of the home page**, above the footer. It contains:
+
+- A **headline** inviting visitors to join the community
+- A **paragraph** explaining that subscribers receive updates about their favourite programs as soon as new content is published
+- An **email input field** (`type="email"`, required)
+- A **SUSCRIBIRME** submit button
+- A **terms and conditions notice** below the form
+
+<Note>
+  The terms and conditions notice reads: *"Al suscribirte aceptas nuestros términos y condiciones."* It appears in small uppercase text below the submit button.
+</Note>
+
+## How subscription works
+
+<Steps>
+  <Step title="User enters their email address">
+    The `email` input field is validated by the browser as a well-formed email address before submission is allowed.
+  </Step>
+  <Step title="Form submits to the API">
+    On submit, a `POST` request is sent to `/api/subscribe` with a JSON body containing the email address. The form's default submit behaviour is prevented.
+  </Step>
+  <Step title="Platform shows a response message">
+    The platform displays an alert with one of three outcomes depending on the API response.
+  </Step>
+  <Step title="Form is reset">
+    Regardless of the outcome, the email input is cleared after the request completes.
+  </Step>
+</Steps>
+
+## API endpoint
+
+<ParamField path="/api/subscribe" type="POST">
+  Subscribes an email address to the newsletter list.
+</ParamField>
+
+### Request
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Headers:** `Content-Type: application/json`
+
+### Responses
+
+<Tabs>
+  <Tab title="New subscriber">
+    **HTTP 200 OK**
+
+    The email was not previously on the list and has been added successfully. The platform shows:
+
+    > ¡Gracias por suscribirte! Revisa tu bandeja de entrada (o carpeta de Spam).
+
+    The response body `message` field does **not** equal `'El usuario ya estaba suscrito.'`
+  </Tab>
+  <Tab title="Already subscribed">
+    **HTTP 200 OK**
+
+    The email is already on the list. The API returns a body where `message === 'El usuario ya estaba suscrito.'` The platform shows:
+
+    > Este correo ya está registrado en nuestra lista de boletines.
+  </Tab>
+  <Tab title="API error">
+    **HTTP 4xx / 5xx**
+
+    The API returned a non-OK status. The platform shows:
+
+    > Hubo un error al procesar tu suscripción: `[error message from API]`
+
+    The `error` field from the JSON response body is included in the message when available.
+  </Tab>
+  <Tab title="Connection failure">
+    **Network error (no response)**
+
+    The request could not reach the server. The platform shows:
+
+    > Fallo de conexión con el servidor.
+  </Tab>
+</Tabs>
+
+<Warning>
+  The already-subscribed case returns HTTP 200, not an error status. Client-side logic inspects the `message` field in the response body to differentiate it from a new subscription.
+</Warning>
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="API: Newsletter" href="/api/newsletter">
+    Full API reference for the `/api/subscribe` endpoint, including field validation and database behaviour.
+  </Card>
+  <Card title="Admin overview" href="/admin/overview">
+    How to view and manage the subscriber list from the admin panel.
+  </Card>
+</CardGroup>

@@ -1,0 +1,92 @@
+---
+title: "Viewing content analytics and performance"
+description: "How to read the Analytics tab in the Estudio Radio América admin dashboard: play time, monthly visits, daily averages, top content, and view count tracking."
+---
+
+The **Analytics** tab gives you a real-time snapshot of how content is performing on the platform. All metrics are derived from view counts stored in the content database and updated each time a user opens a video or audio episode.
+
+## Opening the Analytics tab
+
+Click **Analytics** in the sidebar. The tab shows three metric panels, a top-content leaderboard, and a report generation button.
+
+## Metric panels
+
+<CardGroup cols={2}>
+  <Card title="Tiempo de Reproducción Total" icon="clock">
+    Total estimated play time in hours, calculated as `totalViews × 15 minutes ÷ 60`. This assumes an average session of 15 minutes per view across all content.
+  </Card>
+  <Card title="Visitas al Mes" icon="chart-bar">
+    The sum of all view counts across every video and audio file in the library, displayed in thousands (e.g. `14.3k`).
+  </Card>
+</CardGroup>
+
+Below those two panels, the **daily average** is displayed as a sub-metric under the monthly visits figure: `totalViews ÷ 30`.
+
+## Top 3 most-consumed content
+
+A ranked list shows the three most-viewed pieces of content, sorted by view count descending. Each row displays:
+
+- A rank number (01, 02, 03)
+- The content title and category
+- The view count in thousands
+
+This list is recalculated live from the in-memory video data — it updates as soon as a new view is recorded.
+
+## Generating a report
+
+Click **Generar Reporte General** to trigger a PDF report. In the current version this action is simulated and displays a browser alert confirming that a detailed report of statistics, ratings, and programs would be generated.
+
+<Note>
+PDF report generation is currently a placeholder. To export real data, use the [Videos API](/api/videos) to fetch all records with their view counts and process them in your reporting tool of choice.
+</Note>
+
+## How view counts are tracked
+
+Every time a user navigates to `/watch/:id`, the platform automatically sends a fire-and-forget `POST /api/videos/:id/view` request. The server increments the view counter for that video record.
+
+```
+POST /api/videos/:id/view
+```
+
+No request body is needed. The response is not awaited by the client — the request is sent and the player continues loading immediately. See the [Videos API reference](/api/videos) for the full endpoint specification.
+
+## Real-time metrics from VideoContext
+
+All analytics figures in the admin panel are computed on the client from the `videos` array provided by `VideoContext`. The total view count is a `reduce` sum:
+
+```typescript
+const totalViews = videos.reduce((acc, video) => acc + (video.views || 0), 0);
+```
+
+This means the Analytics tab reflects the state of the database at the time the admin panel was loaded. Refresh the page to fetch the latest data from the API.
+
+## Dashboard tab view counts
+
+The **Dashboard** tab also displays view count badges on the four most-viewed video cards. These are the same `views` values from `VideoContext` and are sorted descending so the highest-viewed content always appears first.
+
+## Additional telemetry integrations
+
+Beyond the in-app view counter, the platform integrates three external monitoring services:
+
+<AccordionGroup>
+  <Accordion title="Firebase Analytics">
+    Firebase collects platform-level telemetry including page views, session data, and user engagement events. This is separate from the in-app view counter stored in the database. Firebase data is visible in the Firebase console, not in the admin panel.
+  </Accordion>
+  <Accordion title="Mixpanel">
+    Mixpanel is integrated for product analytics and user behavior tracking. Event data flows to the Mixpanel dashboard configured for the project.
+  </Accordion>
+  <Accordion title="Sentry">
+    Sentry is integrated for error monitoring and performance tracking. Runtime exceptions and slow transactions are captured and visible in the Sentry dashboard.
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+For a complete picture of platform performance, combine the admin Analytics tab (content view counts) with Firebase Analytics (audience behavior) and Mixpanel (user journeys). The in-app counter is the most reliable source for per-content view totals.
+</Tip>
+
+## Related pages
+
+- [Admin dashboard overview](/admin/overview)
+- [Managing videos and programs](/admin/content-management)
+- [Videos API reference](/api/videos)
+- [Data models](/api/models)

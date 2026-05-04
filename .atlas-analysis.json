@@ -1,28 +1,11 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
-  "name": "Estudio Radio América",
+  "projectType": "saas",
+  "projectName": "Estudio Radio América",
+  "projectDescription": "A full-stack streaming platform for Radio América 90.9 FM (Venezuela) featuring live radio, on-demand video and podcast playback, a programs catalog, shorts/reels, and a CMS admin dashboard.",
   "theme": "palm",
-  "colors": {
-    "primary": "#747474",
-    "light": "#0b0b0b",
-    "dark": "#b5b5b5"
-  },
-  "favicon": "/favicon.svg",
-  "logo": {
-    "light": "https://media.brand.dev/a2d5ce6a-e228-43ef-b15c-6aaf770efc04.svg",
-    "dark": "https://media.brand.dev/a2d5ce6a-e228-43ef-b15c-6aaf770efc04.svg"
-  },
-  "navbar": {
-    "primary": {
-      "type": "github",
-      "href": "https://github.com/DervisMartinez/estudioradioamericacomve"
-    }
-  },
-  "footer": {
-    "socials": {
-      "github": "https://github.com/DervisMartinez/estudioradioamericacomve"
-    }
-  },
+  "primaryColor": "#747474",
+  "lightColor": "#0b0b0b",
+  "darkColor": "#b5b5b5",
   "navigation": {
     "tabs": [
       {
@@ -94,5 +77,37 @@
         ]
       }
     ]
-  }
+  },
+  "keyFeatures": [
+    "Live HLS radio streaming from Radio América 90.9 FM",
+    "On-demand video player supporting YouTube, Instagram, HLS (.m3u8) and direct MP4",
+    "Podcast/audio player with vinyl fullscreen mode and Spotify/Zeno.fm embed support",
+    "Programs and podcasts catalog with episode management",
+    "Shorts & Reels vertical video feed with inline playback",
+    "Hero carousel with featured and live content",
+    "Admin CMS dashboard (videos, programs, sponsors, analytics, profile)",
+    "Sponsor ad playlist injection for podcast episodes",
+    "Newsletter subscription via REST API",
+    "Light/dark mode with localStorage persistence",
+    "Docker + Nginx production deployment",
+    "Firebase Analytics and Sentry + Mixpanel monitoring"
+  ],
+  "publicApiSurface": [
+    "GET /api/videos",
+    "POST /api/videos",
+    "PUT /api/videos/:id",
+    "DELETE /api/videos/:id",
+    "POST /api/videos/:id/view",
+    "GET /api/programs",
+    "POST /api/programs",
+    "PUT /api/programs/:id",
+    "DELETE /api/programs/:id",
+    "GET /api/sponsors",
+    "POST /api/sponsors",
+    "DELETE /api/sponsors/:id",
+    "GET /api/profile",
+    "PUT /api/profile",
+    "POST /api/upload",
+    "POST /api/subscribe"
+  ]
 }

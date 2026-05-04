@@ -1,0 +1,80 @@
+---
+title: "Live radio streaming on Estudio Radio América"
+description: "How the persistent Radio América 90.9 FM player works across every page of the platform, including controls, stream format, and live indicators."
+---
+
+The live radio feature gives every visitor to Estudio Radio América continuous access to the Radio América 90.9 FM broadcast without ever interrupting their browsing. This page explains how the player bar works, what controls are available, and where the live indicator appears.
+
+## Persistent player bar
+
+A floating player bar is pinned to the **bottom of every page** on the platform. It streams Radio América 90.9 FM at all times and remains visible whether you are on the home page, watching a video, or browsing the programs catalog.
+
+<CardGroup cols={2}>
+  <Card title="Always-on radio" icon="radio">
+    The audio element is loaded once and persists across navigation. Playback continues uninterrupted while you explore other content.
+  </Card>
+  <Card title="Works on all devices" icon="mobile">
+    The player bar is fully responsive. Controls adapt for mobile and desktop screen sizes.
+  </Card>
+</CardGroup>
+
+### Player controls
+
+<Steps>
+  <Step title="Play / Pause">
+    Click the circular button in the center of the bar to start or stop the stream. The icon switches between a play arrow and a pause symbol to reflect the current state.
+  </Step>
+  <Step title="Volume slider">
+    On desktop (large screens), a horizontal volume slider appears to the right of the playback controls. Drag it left to lower volume or right to raise it. The default volume is 80%.
+  </Step>
+  <Step title="EN VIVO indicator">
+    A small animated red pulse dot next to the text **EN VIVO** confirms the station is live. The dot uses a CSS `animate-pulse` animation so it is immediately recognizable.
+  </Step>
+</Steps>
+
+### Stream details
+
+<Note>
+  The radio stream is delivered in **HLS format** (HTTP Live Streaming). On browsers that do not support HLS natively, the platform falls back to a direct audio source tag pointing to the same endpoint.
+</Note>
+
+| Property | Value |
+|---|---|
+| Stream URL | `https://transmision.radioamerica.com.ve:8087/RA909FM` |
+| Format | HLS (HTTP Live Streaming) |
+| Station | Radio América 90.9 FM |
+
+## Floating live indicator on Watch pages
+
+When you are on a video or podcast watch page (`/watch/:id`), an additional **floating live indicator** appears in the **bottom-right corner** of the screen on desktop. It shows:
+
+- An animated pulse dot labeled **En Vivo**
+- The station name: *Estudio Radio América*
+- A compact play/pause button that controls the radio independently of the video player
+
+<Info>
+  The floating live indicator is **desktop only** (`hidden lg:flex`). On mobile devices, the persistent bottom bar serves the same purpose.
+</Info>
+
+## Browsing while listening
+
+Because the player bar is rendered at the application root level, the audio element is never unmounted when navigating between pages. You can:
+
+- Browse the programs catalog (`/programas`) without pausing the radio
+- Open a new video at `/watch/:id` — the radio and video player operate independently
+- Switch between dark and light mode — playback is not affected
+
+<Tip>
+  If both the radio and a podcast are playing at the same time, use the volume slider on the radio bar and the volume control inside the podcast player to balance the two audio sources.
+</Tip>
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Video and podcast player" href="/features/video-player">
+    Learn how the on-demand video and podcast player works alongside the live radio bar.
+  </Card>
+  <Card title="Programs and podcasts catalog" href="/features/programs-podcasts">
+    Explore all programs and podcasts available on the platform.
+  </Card>
+</CardGroup>

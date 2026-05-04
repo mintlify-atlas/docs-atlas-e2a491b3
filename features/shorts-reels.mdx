@@ -1,0 +1,110 @@
+---
+title: "Shorts and reels vertical video feed"
+description: "Estudio Radio América shorts feed: 9:16 grid, five category filters, inline playback for YouTube Shorts, Instagram Reels, and direct video file uploads."
+---
+
+The shorts and reels feed on the Estudio Radio América home page provides a vertical, social-media-style video experience without requiring visitors to leave the page. This document explains how the feed is filtered, how inline playback works, and which video source platforms are supported.
+
+## What are shorts?
+
+A `Video` object is treated as a short when its `isShort` field is set to `true`. Shorts appear exclusively in the **FORMATO VERTICAL** section of the home page and do **not** appear in the main video catalog or hero section.
+
+<Info>
+  Shorts are filtered from the main catalog with `videos.filter(v => v.isShort)`. They share the same `Video` data model as regular videos but are displayed in a 9:16 aspect ratio grid instead of a 16:9 layout.
+</Info>
+
+## Category filters
+
+Five category filter buttons appear above the shorts grid:
+
+| Filter | Effect |
+|---|---|
+| **Todo** | Shows all shorts regardless of category |
+| **Historia** | Shows shorts tagged with the Historia category |
+| **Personajes** | Shows shorts tagged with the Personajes category |
+| **Sociedad** | Shows shorts tagged with the Sociedad category |
+| **Deportes** | Shows shorts tagged with the Deportes category |
+
+The active filter is highlighted with a darker background. Only one filter can be active at a time. Changing the filter immediately updates the grid without a page reload.
+
+## Grid layout
+
+<CardGroup cols={2}>
+  <Card title="Mobile" icon="mobile">
+    The grid renders in **2 columns** on the smallest screen sizes (`grid-cols-2`).
+  </Card>
+  <Card title="Small screens and up" icon="monitor">
+    At the `sm` breakpoint and above, the grid expands to **3 columns** (`sm:grid-cols-3`).
+  </Card>
+</CardGroup>
+
+Each card maintains a **9:16 aspect ratio** (`aspect-[9/16]`), consistent with vertical video formats on platforms such as YouTube Shorts and Instagram Reels.
+
+## Inline playback
+
+Shorts play **directly inside their card** without navigating to a separate watch page. Clicking the thumbnail or play overlay sets the active short ID, which swaps the thumbnail for the player.
+
+<Steps>
+  <Step title="Tap or click the thumbnail">
+    The thumbnail card shows a semi-transparent play button overlay. Clicking it activates inline playback for that card.
+  </Step>
+  <Step title="Player replaces the thumbnail">
+    The thumbnail is replaced by the appropriate embed or video element within the same 9:16 container.
+  </Step>
+  <Step title="Hover controls appear">
+    On hover, two buttons fade in over the player:
+    - A **close** button (✕) to stop playback and revert to the thumbnail
+    - An **external link** button to open the short in its original platform in a new tab
+  </Step>
+  <Step title="Close playback">
+    Clicking the close button sets the playing short ID back to `null`, restoring the thumbnail view for that card.
+  </Step>
+</Steps>
+
+<Note>
+  Only one short plays at a time. Starting a new short while another is playing does not automatically close the previous one — the user must click the close button first.
+</Note>
+
+## Supported source platforms
+
+<Tabs>
+  <Tab title="YouTube Shorts">
+    YouTube URLs (including `youtube.com/shorts/`, `youtu.be/`, and standard watch URLs) are parsed with a regex to extract the 11-character video ID. The short is embedded using:
+
+    ```
+    https://www.youtube.com/embed/{videoId}?autoplay=1&rel=0
+    ```
+
+    The embed uses `allow="autoplay"` so playback starts immediately when the user clicks.
+  </Tab>
+  <Tab title="Instagram Reels">
+    Instagram post, reel, and TV URLs are parsed to extract the media ID. The short is embedded using Instagram's public embed endpoint:
+
+    ```
+    https://www.instagram.com/p/{mediaId}/embed
+    ```
+
+    The embed renders with a white background and `allowTransparency`.
+  </Tab>
+  <Tab title="Direct video files">
+    URLs ending in `.mp4`, `.webm`, `.ogg`, or `.m3u8`, as well as `data:video/` data URIs, are played using the `HlsVideoPlayer` component:
+
+    - `.m3u8` sources use **hls.js** for HLS playback, with native HLS as a fallback for Safari/iOS
+    - All other formats use the native `<video>` element directly
+    - HLS streams have `nodownload` controls and right-click disabled
+  </Tab>
+  <Tab title="External links">
+    If the URL does not match YouTube, Instagram, or a direct video format, a fallback card is shown with an "Ver Original" button that opens the URL in a new tab. No inline embed is attempted.
+  </Tab>
+</Tabs>
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Video and podcast player" href="/features/video-player">
+    Full-page video player for longer-form content, with related video suggestions and view tracking.
+  </Card>
+  <Card title="Programs and podcasts catalog" href="/features/programs-podcasts">
+    How the broader content library is organized by programs and podcasts.
+  </Card>
+</CardGroup>

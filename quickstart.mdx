@@ -1,81 +1,127 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
-icon: 'rocket'
+title: "Get started with Estudio Radio América"
+description: "Step-by-step guide to Estudio Radio América: tune in live, browse programs, watch episodes, subscribe to the newsletter, and log in as a content manager."
 ---
 
-## Get started in three steps
+Estudio Radio América is ready to use the moment you open it in a browser — no account or download required for listeners. This guide walks you through the main features available to end users and the steps content managers need to log in and start publishing.
 
-Get your documentation site running locally and make your first customization.
+## Tune in as a listener
 
-### Step 1: Set up your local environment
+### Access the platform
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+<Steps>
+  <Step title="Open the platform">
+    Navigate to the Estudio Radio América URL in any modern browser (Chrome, Firefox, Safari, or Edge). The page loads with a full-screen hero section showing the current featured or live content.
 
-### Step 2: Deploy your changes
+    <Tip>
+      The platform saves your light/dark mode preference in `localStorage`. It will remember your choice on your next visit.
+    </Tip>
+  </Step>
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+  <Step title="Tune into live radio">
+    The **persistent player bar** is fixed to the bottom of the screen on every page. It shows "Radio América 90.9 FM" with a pulsing live indicator.
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    - Click the **play button** (circle in the center of the bar) to start streaming.
+    - Click it again to pause.
+    - On desktop, drag the **volume slider** on the right side of the bar to adjust the audio level. The default volume is 80%.
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+    <Note>
+      The live radio stream at `https://transmision.radioamerica.com.ve:8087/RA909FM` runs continuously. You can navigate to any page on the platform and the audio keeps playing uninterrupted.
+    </Note>
+  </Step>
 
-### Step 3: Go live
+  <Step title="Browse featured content on the home page">
+    The hero carousel at the top of the home page rotates through live or featured videos every 7 seconds. Each slide shows:
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+    - A **title** and **description** for the featured item.
+    - A badge — **EN VIVO** (red, animated) for live content, or **Especial** for featured pre-recorded content.
+    - An **action button** — click **SINTONIZAR AHORA** for live content or **ESCUCHAR AHORA** for an on-demand episode to go directly to the player.
+
+    Below the hero, the **Programas Destacados** carousel scrolls horizontally through all available programs. Hover over the carousel to pause the auto-scroll, then click any program card to open that program's page.
+  </Step>
+
+  <Step title="Watch a video or listen to a podcast">
+    Any time you click a play button or a video card, the platform navigates to `/watch/:id` where the full player loads.
+
+    On the watch page you can:
+
+    - Play and pause the video or audio episode.
+    - Use the timeline scrubber to seek within the episode.
+    - HLS streams (`.m3u8`) play with the built-in hls.js player; standard MP4 files and external links play with the native browser player.
+
+    <Info>
+      HLS content is protected — right-click and the download option are disabled for `.m3u8` streams. MP4 files and external links do not carry this restriction.
+    </Info>
+  </Step>
+
+  <Step title="Browse all programs">
+    Click **Programas Destacados** in the top navigation bar, or go directly to `/programas` in a new tab. The programs page lists every show and podcast in the catalog.
+
+    Each program card displays:
+
+    - The program thumbnail (poster image).
+    - The program name and category badge.
+
+    Click any card to open that program's episode list.
+  </Step>
+
+  <Step title="Subscribe to the newsletter">
+    Scroll to the **Únete a la Comunidad** section near the bottom of the home page.
+
+    1. Enter your email address in the input field.
+    2. Click **SUSCRIBIRME**.
+    3. A confirmation alert will appear. Check your inbox (or spam folder) for the welcome email.
+
+    <Note>
+      If your email is already subscribed, the platform will let you know instead of creating a duplicate entry.
+    </Note>
+  </Step>
+</Steps>
+
+## Log in as a content manager
+
+Content managers access the Estudio Radio América admin dashboard through a separate login form. Only users with the correct admin credentials can sign in.
+
+<Steps>
+  <Step title="Go to the login page">
+    Navigate to `/login` in your browser. You will see the admin sign-in form.
+  </Step>
+
+  <Step title="Enter your credentials">
+    Enter the **email address** and **password** associated with your admin account, then click **INGRESAR AL PANEL**.
+
+    <Warning>
+      Admin credentials are managed by your system administrator. Contact them if you need access or a password reset.
+    </Warning>
+  </Step>
+
+  <Step title="Access the admin dashboard">
+    After a successful login you are redirected to `/admin`. From the dashboard you can:
+
+    - **Content management** — upload, edit, and delete videos, programs, and episodes.
+    - **Sponsors** — register and manage sponsor spots linked to programs.
+    - **Analytics** — view engagement data for your content.
+    - **Station profile** — update the station's name, bio, avatar, and social media links (YouTube, Instagram, Facebook, Twitter/X).
+
+    <Tip>
+      Changes you publish in the admin dashboard appear on the public-facing site immediately — no rebuild or deployment is required.
+    </Tip>
+  </Step>
+</Steps>
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Live radio feature" icon="radio" href="/features/live-radio">
+    Learn more about the persistent radio player and stream configuration.
+  </Card>
+  <Card title="Video player" icon="circle-play" href="/features/video-player">
+    Explore HLS playback, supported formats, and the watch page.
+  </Card>
+  <Card title="Programs & podcasts" icon="microphone" href="/features/programs-podcasts">
+    Understand how programs are organized and browsed.
+  </Card>
+  <Card title="Admin overview" icon="gear" href="/admin/overview">
+    Get a full picture of what content managers can do in the dashboard.
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

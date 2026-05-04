@@ -1,0 +1,91 @@
+---
+title: "Estudio Radio América: platform overview"
+description: "Estudio Radio América overview: live radio, on-demand video and podcasts, programs, shorts, admin CMS, and the full technology stack powering the platform."
+---
+
+Estudio Radio América is the official streaming platform for Radio América 90.9 FM (Venezuela), giving listeners and viewers a single destination for live radio, on-demand video, podcasts, short-form content, and curated program catalogs — all accessible from any modern web browser without installing an app.
+
+## Who it's for
+
+| Audience | What they do |
+|---|---|
+| **Listeners & viewers** | Tune in live, browse programs, watch episodes, and subscribe to the newsletter |
+| **Content managers** | Publish and organize videos, programs, sponsors, and station profile via the admin dashboard |
+| **Developers & operators** | Build, configure, and deploy the platform using Docker and Nginx |
+
+## Key capabilities
+
+<CardGroup cols={2}>
+  <Card title="Live radio" icon="radio" href="/features/live-radio">
+    Stream Radio América 90.9 FM continuously from the persistent bottom player bar — play, pause, and adjust volume without leaving the page.
+  </Card>
+  <Card title="Video player" icon="circle-play" href="/features/video-player">
+    Watch interviews, news segments, and exclusive content with the HLS-capable video player at `/watch/:id`, which supports both `.m3u8` streams and standard MP4 files.
+  </Card>
+  <Card title="Programs & podcasts" icon="microphone" href="/features/programs-podcasts">
+    Browse the full catalog of radio programs and podcasts at `/programas`. Each program has its own page listing episodes, host details, and schedule.
+  </Card>
+  <Card title="Shorts & reels" icon="film" href="/features/shorts-reels">
+    Discover vertical short-form videos on the home page feed, with inline playback from YouTube, Instagram, or direct video uploads.
+  </Card>
+</CardGroup>
+
+### Admin CMS
+
+Content managers log in at `/login` to access the admin dashboard at `/admin`. From there you can create and edit videos, programs, and sponsors, update the station profile (social links, bio, avatar), and track analytics — all without touching the codebase.
+
+<Tip>
+  The admin section is protected by a login form at `/login`. Only users with valid credentials can access `/admin`. Authentication state is stored in the browser's localStorage.
+</Tip>
+
+## Technology stack
+
+Estudio Radio América is a React single-page application built with the following libraries and services:
+
+| Layer | Technology |
+|---|---|
+| **UI framework** | React 19 + TypeScript |
+| **Bundler** | Vite 8 |
+| **Styling** | Tailwind CSS 4 |
+| **Routing** | React Router DOM 7 |
+| **HLS streaming** | hls.js 1.6 |
+| **Authentication & data** | Firebase 12 |
+| **Error monitoring** | Sentry for React 10 |
+| **Product analytics** | Mixpanel Browser 2 |
+| **SEO** | react-helmet-async |
+| **Web server** | Nginx (stable-alpine) |
+| **Container runtime** | Docker (multi-stage build) |
+
+The API base URL is resolved at runtime:
+
+```ts
+// src/VideoContext.tsx
+export const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.MODE === 'production' ? '/api' : 'http://localhost:3005/api');
+```
+
+In production, Nginx proxies `/api/` requests to the Node.js backend running on port `3005`.
+
+## Supported platforms and devices
+
+The platform is a progressive web application that runs in any modern browser. No native app installation is required.
+
+- **Desktop** — Chrome, Firefox, Safari, Edge (current versions)
+- **Mobile** — iOS Safari, Android Chrome (HLS playback uses native Safari support on iOS)
+- **Tablet** — responsive layout scales to all screen sizes
+
+<Note>
+  HLS streams (`.m3u8`) are protected against download. On browsers that don't support the Media Source Extensions API, the player falls back to native `<video>` element playback, which is the default behavior on iOS Safari.
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quick start" icon="rocket" href="/quickstart">
+    Start using the platform as a listener or content manager in minutes.
+  </Card>
+  <Card title="Deploy with Docker" icon="docker" href="/deployment">
+    Build and run the platform with the included Dockerfile and Nginx configuration.
+  </Card>
+</CardGroup>

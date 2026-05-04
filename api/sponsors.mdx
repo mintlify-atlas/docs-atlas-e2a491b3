@@ -1,0 +1,126 @@
+---
+title: 'Sponsors API — manage ad audio (cuñas)'
+description: 'Reference for the three sponsor endpoints that manage the centralized ad audio library (cuñas) used in sponsored podcast episodes on Estudio Radio América.'
+---
+
+Sponsors represent ad audio files — called **cuñas** — stored in a centralized library. When an audio episode is marked as sponsored, the admin selects one or more cuñas. The player then assembles a playlist by concatenating the sponsor audio URLs with the episode URL in a JSON array stored in the `url` field of the video record.
+
+See [Data models — Sponsored URL format](/api/models#sponsored-url-format) for details on the playlist encoding.
+
+---
+
+## GET /api/sponsors
+
+Returns all registered sponsors ordered by creation date (newest first).
+
+**No authentication required.**
+
+```bash
+curl https://your-domain.com/api/sponsors
+```
+
+### Response
+
+Returns a JSON array of [Sponsor](/api/models#sponsor) objects.
+
+```json
+[
+  {
+    "id": "1718000000000",
+    "name": "Promo Coca-Cola Junio",
+    "url": "https://your-domain.com/media/coca-cola-promo.mp3",
+    "programId": "1716000000000",
+    "createdAt": "2024-06-01T08:00:00.000Z"
+  }
+]
+```
+
+---
+
+## POST /api/sponsors
+
+Registers a new sponsor audio file in the library. Upload the audio file first using [POST /api/upload](/api/media-upload) to obtain a URL, then pass that URL here.
+
+**Authentication required.**
+
+```bash
+curl -X POST https://your-domain.com/api/sponsors \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "1718000000000",
+    "name": "Promo Coca-Cola Junio",
+    "url": "https://your-domain.com/media/coca-cola-promo.mp3",
+    "programId": "1716000000000",
+    "createdAt": "2024-06-01T08:00:00.000Z"
+  }'
+```
+
+<Note>
+  The admin UI generates the `id` and `createdAt` values on the client using `Date.now().toString()` and `new Date().toISOString()` respectively. You must supply them when calling this endpoint directly.
+</Note>
+
+### Request body
+
+<ParamField body="id" type="string" required>
+  Unique identifier for the sponsor. The admin UI uses `Date.now().toString()`.
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  Human-readable label for the ad, e.g. `"Promo Coca-Cola Junio"`. Displayed in the sponsor library grid.
+</ParamField>
+
+<ParamField body="url" type="string" required>
+  Public URL of the uploaded audio file. Obtain this from [POST /api/upload](/api/media-upload).
+</ParamField>
+
+<ParamField body="programId" type="string">
+  Optional ID of the program this sponsor is associated with. When empty or omitted, the sponsor is shown as "Global" in the admin library and can be attached to any episode.
+</ParamField>
+
+<ParamField body="createdAt" type="string" required>
+  ISO 8601 creation timestamp, e.g. `"2024-06-01T08:00:00.000Z"`.
+</ParamField>
+
+### Response
+
+`200 OK` — the created sponsor object.
+
+---
+
+## DELETE /api/sponsors/:id
+
+Removes a sponsor from the library. This does **not** remove the sponsor audio from any episode where it was already embedded — those episodes continue to reference the audio URL directly inside their `url` JSON array.
+
+**Authentication required.**
+
+```bash
+curl -X DELETE https://your-domain.com/api/sponsors/1718000000000
+```
+
+### Path parameter
+
+<ParamField path="id" type="string" required>
+  The sponsor ID to delete.
+</ParamField>
+
+### Response
+
+`200 OK` on success.
+
+<Warning>
+  Deleting a sponsor from the library does not strip its audio from already-published sponsored episodes. To remove the ad from an episode, edit the episode via [PUT /api/videos/:id](/api/videos#put-api-videos-id) and update the `url` field.
+</Warning>
+
+---
+
+## Sponsored podcast URL format
+
+When an audio episode has one or more cuñas, the `url` field of the video record is a JSON-encoded array where the sponsor audio URLs come first and the actual episode URL is last:
+
+```json
+["https://your-domain.com/media/promo-a.mp3", "https://your-domain.com/media/promo-b.mp3", "https://your-domain.com/media/episode.mp3"]
+```
+
+The player reads this array, plays each sponsor track in order, then plays the episode. A plain string URL means the episode has no sponsors.
+
+See [Data models](/api/models#sponsored-url-format) for the full description.

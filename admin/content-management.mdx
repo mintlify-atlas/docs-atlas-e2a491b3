@@ -1,0 +1,186 @@
+---
+title: "Managing videos and programs in the CMS"
+description: "How to add, edit, and delete videos, audio episodes, and programs in the Estudio Radio América admin panel, including file upload and content type flags."
+---
+
+The **Video Library** and **Programas** tabs are where you manage all on-demand content on the platform. Videos and audio episodes are stored with metadata that controls how and where they appear — in the hero carousel, the shorts feed, the podcast player, or the general video grid.
+
+## Video Library tab
+
+Open the **Video Library** tab from the sidebar to see every published piece of content in a card grid.
+
+### Filtering
+
+At the top of the library you can filter the grid by category using the pill toggle:
+
+- **Todos** — show all content
+- **Historia** — only Historia-category content
+- **Personajes** — only Personajes-category content
+
+### Actions on each card
+
+Each video card displays the thumbnail, title, category, view count, and publication date. Three action icons appear at the bottom of every card:
+
+| Icon | Action |
+|------|--------|
+| Edit (pencil) | Opens the edit modal pre-filled with the video's current data |
+| Delete (trash) | Prompts for confirmation then permanently deletes the video |
+| Open (external link) | Opens the video URL in a new browser tab |
+
+## Adding a new video
+
+Click **Add New Video** in the header bar, or click **Upload Video** in the sidebar footer, to open the upload modal.
+
+<Steps>
+  <Step title="Fill in the title">
+    Enter a descriptive title for the video or audio episode. This is the only required text field.
+  </Step>
+  <Step title="Choose the media format">
+    Select **Video** (YouTube, MP4, Reel) or **Audio / Podcast** (MP3, WAV, link). Choosing Audio activates the sponsor section and routes the content to the podcast player.
+  </Step>
+  <Step title="Select a category">
+    Choose one of the available categories from the dropdown:
+    - Historia
+    - Personajes
+    - Documentales
+    - Sociedad
+    - Deportes
+    - Cultura
+    - Política
+  </Step>
+  <Step title="Optionally link to a program">
+    Select a program from the **Programa** dropdown to associate this episode with an existing show. Leave blank to publish as a standalone piece.
+  </Step>
+  <Step title="Set optional metadata">
+    - **Release Date** — controls the publish date shown to users
+    - **Duration** — enter in `MM:SS` format (e.g. `45:00`)
+    - **Press Note URL** — link to an external article or press release
+  </Step>
+  <Step title="Add a description">
+    Write a short synopsis. This field is required.
+  </Step>
+  <Step title="Upload or link the thumbnail">
+    Paste a URL or click the upload button to select an image from your device. Images are automatically compressed to 600 px maximum width at 70% JPEG quality before saving.
+  </Step>
+  <Step title="Upload or link the media file">
+    Paste a YouTube, Instagram, or direct URL, or click the upload button to upload an MP4 or MP3. Media files are sent to the server via `POST /api/upload` and the returned URL is stored.
+  </Step>
+  <Step title="Configure content type flags">
+    Toggle the checkboxes in the flags row to control where the content appears:
+    - **Destacada** — places the video in the hero featured carousel
+    - **EN VIVO** — pins the video first in the hero with a live badge
+    - **Short / Reel** — adds the video to the vertical shorts feed
+  </Step>
+  <Step title="Save">
+    Click **Guardar Video**. The form submits and the new video appears at the top of the library grid.
+  </Step>
+</Steps>
+
+### Content type flags explained
+
+<AccordionGroup>
+  <Accordion title="isFeatured — Destacada">
+    The video appears in the hero carousel on the home page alongside other featured content. Use this for interviews, documentaries, or any content you want to promote prominently.
+  </Accordion>
+  <Accordion title="isLive — EN VIVO">
+    The video is pinned as the first item in the hero carousel and displays a pulsing **EN VIVO** badge. Only one video should have this flag active at a time for clarity. This flag is stored as a boolean and the hero component checks it on load.
+  </Accordion>
+  <Accordion title="isShort — Short / Reel">
+    The video appears in the **FORMATO VERTICAL** section of the home page. The short is displayed in a 9:16 vertical aspect ratio card. Inline playback starts when a visitor taps the card — no navigation to a separate page occurs.
+  </Accordion>
+  <Accordion title="isAudio — Audio / Podcast">
+    Set automatically when you choose **Audio** as the media format. Audio content is routed to the podcast player instead of the video player. The library card shows a headphones badge for audio items.
+  </Accordion>
+</AccordionGroup>
+
+## Editing a video
+
+Click the pencil icon on any video card in the **Video Library** or **Dashboard** tab. The same upload modal opens with all fields pre-filled from the existing record.
+
+<Note>
+For sponsored audio episodes, the stored URL is a JSON array. When you open the edit modal, the system automatically parses the array: the last item is the episode file, and any preceding items are the sponsor audio tracks. The sponsor slots are restored so you can modify or remove them.
+</Note>
+
+Make your changes and click **Guardar Video** to save. The library updates immediately.
+
+## Programs tab
+
+Open the **Programas** tab from the sidebar to see all programs and podcast series in a vertical poster grid (2:3 aspect ratio cards).
+
+### Program list
+
+Each program card shows:
+- The vertical thumbnail poster
+- Category label and program name
+- Edit and delete icon buttons (overlay on hover)
+
+Click a program card anywhere except the edit or delete buttons to open the program's **detail view**.
+
+### Adding a new program
+
+<Steps>
+  <Step title="Open the program modal">
+    Click **Añadir Programa** in the top-right of the Programas tab.
+  </Step>
+  <Step title="Enter the program name">
+    Provide the full name of the show or podcast series.
+  </Step>
+  <Step title="Select the content type">
+    Choose **Programa** for a video-based show or **Podcast** for an audio-only series.
+  </Step>
+  <Step title="Set the category">
+    Type or select a category. The field suggests existing categories from both programs and videos, but you can type a new one freely.
+  </Step>
+  <Step title="Add the host and schedule">
+    Enter the presenter's name and the broadcast schedule (e.g. `Lun - Vie, 8:00 AM`).
+  </Step>
+  <Step title="Upload the vertical poster thumbnail">
+    This is the primary image shown in the programs grid. It is compressed to 600 px maximum width at 70% JPEG quality on upload.
+  </Step>
+  <Step title="Optionally upload a wide cover image">
+    A wide banner image used in the program detail view header. Optional.
+  </Step>
+  <Step title="Write the synopsis">
+    A short description of the show, displayed in the program detail view.
+  </Step>
+  <Step title="Save">
+    Click **Guardar Programa**. The new program card appears at the top of the programs grid.
+  </Step>
+</Steps>
+
+### Program detail view
+
+Click a program card to enter its detail view. This screen shows:
+
+- The program's thumbnail, name, type badge, description, host, and schedule
+- Two quick-action buttons: **Añadir Episodio (Video)** and **Añadir Episodio (Audio)**
+- A list of all episodes associated with this program
+
+Clicking either episode button opens the upload modal pre-configured with the program's category and ID already filled in. Adding an audio episode with a **Podcast** type program also activates the sponsor section automatically.
+
+Each episode row in the list shows the episode thumbnail, title, format label (Audio / Podcast or Video), and edit and delete buttons.
+
+<Tip>
+Use **Volver a Programas** (back arrow link) at the top of the detail view to return to the programs grid without losing your place.
+</Tip>
+
+## File upload behavior
+
+| File type | Upload method | Processing |
+|-----------|--------------|------------|
+| Images (thumbnail, poster, cover) | Browser-side compression then stored as base64 data URL | Resized to max 600 px width, 70% JPEG quality |
+| Video (MP4) | `POST /api/upload` multipart form | Server processes and returns a hosted URL |
+| Audio (MP3, WAV) | `POST /api/upload` multipart form | Server processes and returns a hosted URL |
+
+While a media upload is in progress, a full-screen loading overlay appears and the **Guardar Video** button is disabled to prevent duplicate submissions.
+
+<Warning>
+If the server responds with HTTP 413, the file exceeds the `client_max_body_size` limit configured in Nginx. Ask your server administrator to increase this limit. See the [Nginx configuration guide](/configuration/nginx) for details.
+</Warning>
+
+## Related pages
+
+- [Admin dashboard overview](/admin/overview)
+- [Managing sponsor ads (cuñas)](/admin/sponsors)
+- [Media upload API reference](/api/media-upload)
+- [Video data model](/api/models)

@@ -1,0 +1,74 @@
+---
+title: 'Newsletter API — POST /api/subscribe'
+description: 'Reference for the newsletter subscription endpoint that registers an email address and handles already-subscribed detection for Estudio Radio América.'
+---
+
+The newsletter endpoint registers a visitor's email address with the station mailing list. The backend detects duplicate subscriptions and returns a distinct message so the frontend can show a friendly "already subscribed" notice instead of a generic success.
+
+**No authentication required.**
+
+---
+
+## POST /api/subscribe
+
+Subscribes an email address to the Estudio Radio América newsletter.
+
+```bash
+curl -X POST https://your-domain.com/api/subscribe \
+  -H "Content-Type: application/json" \
+  -d '{"email": "oyente@example.com"}'
+```
+
+### Request body
+
+<ParamField body="email" type="string" required>
+  The email address to subscribe. Must be a valid email format. The HTML form on the homepage uses `type="email"` validation before submitting.
+</ParamField>
+
+### Response — new subscriber
+
+`200 OK` with a JSON body indicating success:
+
+```json
+{
+  "message": "¡Gracias por suscribirte! Revisa tu bandeja de entrada."
+}
+```
+
+The exact message text may vary. On success, the subscriber receives a confirmation email. Advise users to check their spam folder if the message does not appear within a few minutes.
+
+### Response — already subscribed
+
+`200 OK` with the following exact body:
+
+```json
+{
+  "message": "El usuario ya estaba suscrito."
+}
+```
+
+The frontend checks for this exact string to display a distinct "already registered" notice:
+
+```typescript
+if (data.message === 'El usuario ya estaba suscrito.') {
+  // Show "already subscribed" alert
+}
+```
+
+### Error response
+
+Non-2xx status with a JSON body:
+
+```json
+{
+  "error": "Description of what went wrong"
+}
+```
+
+### Frontend behaviour
+
+After a successful submission (whether new or duplicate), the homepage form is reset via `form.reset()`. The user is notified with an `alert()` in the current implementation.
+
+<Tip>
+  The `POST /api/subscribe` endpoint is called by the newsletter form at the bottom of the homepage. It does not require the user to be logged in, making it safe to call from any public client.
+</Tip>

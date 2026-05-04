@@ -1,0 +1,130 @@
+---
+title: "Programs and podcasts catalog"
+description: "Estudio Radio América programs and podcasts: home page carousel, /programas full catalog, show detail pages with inline audio player and episode grid."
+---
+
+The programs and podcasts catalog is the backbone of Estudio Radio América's content library. The platform divides all shows into two content types — **Programs** (`Programa`) and **Podcasts** (`Podcast`) — and surfaces them in multiple places: the home page carousel, the full catalog page, and individual show pages with episode lists.
+
+## Content types
+
+Each item in the catalog is a `Program` object with the following properties:
+
+<CardGroup cols={2}>
+  <Card title="Programa" icon="tv">
+    Regular broadcast shows with a schedule, a host, and recurring episodes. Displayed in the **PROGRAMAS** section of the catalog.
+  </Card>
+  <Card title="Podcast" icon="microphone">
+    On-demand audio series. Distinguished by `type: 'Podcast'` and grouped in the **PODCASTS** section of the catalog.
+  </Card>
+</CardGroup>
+
+### Program data model
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | `string` | Unique identifier |
+| `name` | `string` | Display name of the show |
+| `category` | `string` | Content category (see list below) |
+| `thumbnail` | `string` | Vertical poster image URL |
+| `type` | `'Programa' \| 'Podcast'` | Determines which catalog section it appears in |
+| `description` | `string` (optional) | Synopsis of the show |
+| `schedule` | `string` (optional) | Broadcast schedule, e.g. "Lunes a Viernes 10am" |
+| `host` | `string` (optional) | Name of the show's host or conductor |
+| `coverImage` | `string` (optional) | Alternate cover image used in the podcast player |
+
+### Available categories
+
+Historia, Personajes, Documentales, Sociedad, Deportes, Cultura, Política
+
+## Home page carousel
+
+The **PROGRAMAS DESTACADOS** section on the home page renders all programs in a horizontally scrollable carousel.
+
+<Steps>
+  <Step title="Auto-scroll">
+    When more than 5 programs exist, the carousel automatically advances by one card every **2.5 seconds** with smooth scrolling. When it reaches the end it wraps back to the beginning.
+  </Step>
+  <Step title="Pause on interaction">
+    Hovering the mouse over the carousel or touching it on a mobile device pauses auto-scroll. The scroll resumes when the cursor leaves or the touch ends.
+  </Step>
+  <Step title="Static layout for small catalogs">
+    If there are **5 or fewer programs**, no auto-scrolling occurs. The cards remain in a static horizontal layout.
+  </Step>
+  <Step title="Navigation">
+    Clicking any program card navigates to its individual page at `/program/:id`.
+  </Step>
+</Steps>
+
+<Info>
+  The carousel width per card is approximately 250 px including gap. Each card uses a vertical poster (portrait) aspect ratio.
+</Info>
+
+## All programs catalog (`/programas`)
+
+The full catalog page at `/programas` splits content into two clearly labelled sections:
+
+<CardGroup cols={2}>
+  <Card title="PROGRAMAS section" icon="grid">
+    Displays all items where `type !== 'Podcast'`. Uses a responsive grid: 2 columns on mobile, 3 on small screens, 4 on medium, 5 on large screens.
+  </Card>
+  <Card title="PODCASTS section" icon="headphones">
+    Displays all items where `type === 'Podcast'`. Uses the same responsive grid layout as the programs section.
+  </Card>
+</CardGroup>
+
+The page includes a search bar in the navigation header and a dark/light mode toggle.
+
+## Individual program page (`/program/:id`)
+
+Each program has its own detail page that includes:
+
+- The program's name, category badge, and cover image (used as a full-width hero background with gradient overlay)
+- Host name (`program.host`) and broadcast schedule (`program.schedule`) displayed as prominent labels
+- Full description (`program.description`)
+- Stat cards: format type, video episode count, audio episode count
+
+### Inline podcast player
+
+When a program has audio episodes, the page renders a built-in **inline podcast player** — visitors can listen without navigating to a separate watch page:
+
+<Steps>
+  <Step title="Player auto-loads the latest audio episode">
+    The most recent audio episode is pre-selected and its cover art and title are shown in the player panel.
+  </Step>
+  <Step title="Playback controls">
+    Standard play/pause, skip previous/next buttons, and a real-time progress bar are displayed. The progress bar is locked during sponsor ad tracks.
+  </Step>
+  <Step title="Episode playlist">
+    All audio episodes for the program appear in a horizontally scrollable playlist grid below the player. Clicking any episode switches the player to that track immediately.
+  </Step>
+  <Step title="Sponsored episode playback">
+    If an episode has sponsors, ad tracks play first. A **Patrocinado** badge appears in the player UI and seeking is disabled until the episode begins.
+  </Step>
+</Steps>
+
+### Video episodes grid
+
+Below the audio player (or at the top if no audio episodes exist), all video episodes are shown in a responsive card grid (1 column mobile, 2 on small, 4 on large). Each card displays the thumbnail, title, description, category badge, and creation date. Clicking a card navigates to `/watch/:id`.
+
+<Note>
+  Episodes linked to a program can be either video or audio format. The `isAudio` flag on each `Video` object determines which player mode opens when the episode is selected from the watch page.
+</Note>
+
+## Episodes and programs relationship
+
+A `Video` object is associated with a program by setting its `programId` field to the program's `id`. This relationship is used in several places:
+
+- The podcast player's synopsis displays `program.host` and `program.schedule`
+- The watch page shows the program name alongside the episode title
+- Related video suggestions on a watch page prioritize content from the same `programId`
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Video and podcast player" href="/features/video-player">
+    How individual episodes are played, including audio and video player modes.
+  </Card>
+  <Card title="API: Programs" href="/api/programs">
+    Full API reference for creating, updating, and deleting programs and podcasts.
+  </Card>
+</CardGroup>

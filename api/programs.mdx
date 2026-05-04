@@ -1,0 +1,165 @@
+---
+title: 'Programs API — manage shows and podcasts'
+description: 'Reference for the four program endpoints used to create, list, update, and delete radio shows and podcast series on Estudio Radio América.'
+---
+
+Programs group related video and audio episodes into named shows or podcast series. Each program appears in the homepage carousel and has its own detail page. Episodes reference a program via their `programId` field.
+
+See [Data models](/api/models) for the complete field reference.
+
+---
+
+## GET /api/programs
+
+Returns all programs ordered by creation date (newest first).
+
+**No authentication required.**
+
+```bash
+curl https://your-domain.com/api/programs
+```
+
+### Response
+
+Returns a JSON array of [Program](/api/models#program) objects.
+
+```json
+[
+  {
+    "id": "1716000000000",
+    "name": "En Conexión",
+    "category": "Sociedad",
+    "thumbnail": "https://your-domain.com/media/en-conexion-thumb.jpg",
+    "type": "Programa",
+    "description": "El espacio donde los venezolanos se conectan con su realidad.",
+    "schedule": "Lunes a Viernes, 10:00 AM",
+    "host": "María Rodríguez",
+    "coverImage": "https://your-domain.com/media/en-conexion-cover.jpg"
+  }
+]
+```
+
+---
+
+## POST /api/programs
+
+Creates a new program. The server assigns the `id` — do not include it in the request body.
+
+**Authentication required.**
+
+```bash
+curl -X POST https://your-domain.com/api/programs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "En Conexión",
+    "category": "Sociedad",
+    "thumbnail": "https://your-domain.com/media/en-conexion-thumb.jpg",
+    "type": "Programa",
+    "description": "El espacio donde los venezolanos se conectan con su realidad.",
+    "schedule": "Lunes a Viernes, 10:00 AM",
+    "host": "María Rodríguez",
+    "coverImage": "https://your-domain.com/media/en-conexion-cover.jpg"
+  }'
+```
+
+### Request body
+
+<ParamField body="name" type="string" required>
+  Display name of the program or podcast series.
+</ParamField>
+
+<ParamField body="category" type="string" required>
+  Category label used for filtering. Typically matches one of the video categories: `Historia`, `Personajes`, `Documentales`, `Sociedad`, `Deportes`, `Cultura`, `Política`.
+</ParamField>
+
+<ParamField body="thumbnail" type="string" required>
+  URL or base64 data URI for the program poster image (portrait aspect ratio recommended). Images are compressed client-side before being stored.
+</ParamField>
+
+<ParamField body="type" type="string" required>
+  Program type. Must be exactly `"Programa"` or `"Podcast"`.
+</ParamField>
+
+<ParamField body="description" type="string">
+  Full description of the program displayed on the detail page.
+</ParamField>
+
+<ParamField body="schedule" type="string">
+  Human-readable broadcast schedule, e.g. `"Lunes a Viernes, 10:00 AM"`.
+</ParamField>
+
+<ParamField body="host" type="string">
+  Name of the program host or hosts.
+</ParamField>
+
+<ParamField body="coverImage" type="string">
+  URL or base64 data URI for a wide cover image used as the program banner. Landscape aspect ratio recommended.
+</ParamField>
+
+### Response
+
+`200 OK` — the created program object including the server-assigned `id`.
+
+---
+
+## PUT /api/programs/:id
+
+Replaces an existing program record with the full updated object. All fields must be present.
+
+**Authentication required.**
+
+```bash
+curl -X PUT https://your-domain.com/api/programs/1716000000000 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "1716000000000",
+    "name": "En Conexión",
+    "category": "Sociedad",
+    "thumbnail": "https://your-domain.com/media/en-conexion-thumb-v2.jpg",
+    "type": "Programa",
+    "description": "El espacio donde los venezolanos se conectan con su realidad. Ahora en formato extendido.",
+    "schedule": "Lunes a Viernes, 10:00 AM y 6:00 PM",
+    "host": "María Rodríguez y Carlos Pérez",
+    "coverImage": "https://your-domain.com/media/en-conexion-cover-v2.jpg"
+  }'
+```
+
+### Path parameter
+
+<ParamField path="id" type="string" required>
+  The program ID to update.
+</ParamField>
+
+### Request body
+
+Same fields as [POST /api/programs](#post-api-programs), plus `id`.
+
+### Response
+
+`200 OK` — the updated program object.
+
+---
+
+## DELETE /api/programs/:id
+
+Permanently deletes a program. This does not cascade-delete the episodes associated with it — those episodes remain but their `programId` will no longer resolve to a valid program.
+
+**Authentication required.**
+
+```bash
+curl -X DELETE https://your-domain.com/api/programs/1716000000000
+```
+
+### Path parameter
+
+<ParamField path="id" type="string" required>
+  The program ID to delete.
+</ParamField>
+
+### Response
+
+`200 OK` on success.
+
+<Warning>
+  Deleting a program does not remove its associated episodes. Clean up orphaned episodes manually through the [Videos API](/api/videos) if needed.
+</Warning>

@@ -1,0 +1,118 @@
+---
+title: 'REST API overview for Estudio Radio América'
+description: 'Estudio Radio América REST API: base URL setup, authentication model, JSON request format, error codes, search endpoint, and links to all endpoint groups.'
+---
+
+The Estudio Radio América backend exposes a JSON REST API consumed by the React frontend. All admin write operations require a session token stored in `localStorage`, while the public read endpoints are open to any client without credentials.
+
+## Base URL
+
+The base URL is resolved at runtime from the `VITE_API_URL` environment variable. If that variable is not set, the app defaults to `/api` in production (served via Nginx reverse proxy) or `http://localhost:3005/api` in development.
+
+```
+VITE_API_URL          — explicit override (any environment)
+/api                  — default in production (MODE === 'production')
+http://localhost:3005/api — default in development
+```
+
+See [Environment variables](/configuration/environment) for how to configure `VITE_API_URL`.
+
+## Request format
+
+All request and response bodies use JSON. Set `Content-Type: application/json` on every mutating request.
+
+The single exception is [media upload](/api/media-upload), which accepts `multipart/form-data`.
+
+## Authentication
+
+Admin operations (POST, PUT, DELETE on videos, programs, sponsors, and profile) are protected by server-side middleware that checks an `admin_auth` token. The frontend stores this token in `localStorage` after a successful login. Public endpoints listed below do **not** require authentication.
+
+| Endpoint | Auth required |
+|---|---|
+| `GET /api/videos` | No |
+| `GET /api/programs` | No |
+| `GET /api/sponsors` | No |
+| `GET /api/profile` | No |
+| `POST /api/subscribe` | No |
+| All other methods | Yes |
+
+## Error responses
+
+The API returns standard HTTP status codes. Error bodies follow this shape:
+
+```json
+{
+  "error": "Human-readable error message"
+}
+```
+
+A `413 Request Entity Too Large` response means the uploaded file exceeded the Nginx `client_max_body_size` limit. See [Nginx configuration](/configuration/nginx) for instructions on raising that limit.
+
+## Endpoint groups
+
+<CardGroup cols={2}>
+  <Card title="Videos" icon="film" href="/api/videos">
+    Manage video and audio episodes, increment view counters, and control featured and live flags.
+  </Card>
+  <Card title="Programs" icon="radio" href="/api/programs">
+    Create and update programs (shows) and podcasts that group related episodes.
+  </Card>
+  <Card title="Sponsors" icon="megaphone" href="/api/sponsors">
+    Register ad audio files (cuñas) and attach them to sponsored podcast episodes.
+  </Card>
+  <Card title="Profile" icon="user" href="/api/profile">
+    Read and update the station identity — host name, avatar, biography, and social links.
+  </Card>
+  <Card title="Media upload" icon="upload" href="/api/media-upload">
+    Upload video, audio, or image files and receive a public URL for use in other endpoints.
+  </Card>
+  <Card title="Newsletter" icon="mail" href="/api/newsletter">
+    Subscribe an email address to the station newsletter and handle duplicate detection.
+  </Card>
+  <Card title="Data models" icon="database" href="/api/models">
+    Full field reference for the Video, Program, Sponsor, and UserProfile data models.
+  </Card>
+</CardGroup>
+
+## Search endpoint
+
+The platform also exposes a public search endpoint used by the search bar in the navigation header. Queries are debounced by 300 ms on the client before the request is sent; requests with fewer than 3 characters are skipped entirely.
+
+### GET /api/search
+
+Returns matching videos and programs for a given query string.
+
+**No authentication required.**
+
+```bash
+curl "https://your-domain.com/api/search?query=entrevista"
+```
+
+#### Query parameters
+
+<ParamField query="query" type="string" required>
+  The search term. Must be URL-encoded. The client skips the request when the value is fewer than 3 characters.
+</ParamField>
+
+#### Response
+
+```json
+{
+  "videos": [
+    {
+      "id": "1717000000000",
+      "title": "Entrevista Exclusiva con el Alcalde",
+      "thumbnail": "https://your-domain.com/media/thumb.jpg"
+    }
+  ],
+  "programs": [
+    {
+      "id": "1716000000000",
+      "name": "En Conexión",
+      "thumbnail": "https://your-domain.com/media/en-conexion-thumb.jpg"
+    }
+  ]
+}
+```
+
+The response contains two arrays: `videos` (matching video records) and `programs` (matching program records). Clicking a result in the search dropdown navigates to `/watch/:id` for videos or `/program/:id` for programs.

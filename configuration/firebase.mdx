@@ -1,0 +1,120 @@
+---
+title: 'Firebase Analytics setup for the platform'
+description: 'Set up Firebase Analytics in Estudio Radio América to track page views, user events, and platform telemetry with your own Firebase project.'
+---
+
+Estudio Radio América uses Firebase Analytics to collect page view and user interaction telemetry. The Firebase SDK is initialized in `src/firebase.ts` with the project configuration for the default deployment. If you are hosting your own instance, you can replace this configuration with credentials from your own Firebase project.
+
+## Default Firebase project
+
+The `firebase.ts` file ships with configuration targeting the `estudio-radio-america` Firebase project:
+
+```typescript src/firebase.ts
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB1-s6USHRtWcZnpwQz8Jk8O1BUaEL4dlw",
+  authDomain: "estudio-radio-america.firebaseapp.com",
+  projectId: "estudio-radio-america",
+  storageBucket: "estudio-radio-america.firebasestorage.app",
+  messagingSenderId: "1089218137135",
+  appId: "1:1089218137135:web:68bf85e39d6463bd268ada",
+  measurementId: "G-24LB1V6E6H"
+};
+
+export const app = initializeApp(firebaseConfig);
+export const analytics = getAnalytics(app);
+```
+
+<Note>
+  Firebase web configuration values (`apiKey`, `appId`, `measurementId`, etc.) are public
+  client-side identifiers. They are safe to commit to source control. Access to Firebase
+  resources is controlled by Security Rules in the Firebase Console, not by keeping these
+  keys secret.
+</Note>
+
+## Firebase project details
+
+| Field | Value |
+|---|---|
+| Project ID | `estudio-radio-america` |
+| Auth domain | `estudio-radio-america.firebaseapp.com` |
+| Storage bucket | `estudio-radio-america.firebasestorage.app` |
+| Messaging sender ID | `1089218137135` |
+| App ID | `1:1089218137135:web:68bf85e39d6463bd268ada` |
+| Measurement ID | `G-24LB1V6E6H` |
+
+## What Firebase Analytics tracks
+
+Once initialized, Firebase Analytics automatically tracks:
+
+- **Page views** — recorded each time the user navigates to a new route.
+- **Session start** — when the user first opens the app or returns after 30 minutes of inactivity.
+- **User engagement** — active time spent on the platform.
+- **First open / first visit** — distinguishes new from returning users.
+
+You can add custom events using `logEvent` from `firebase/analytics` wherever additional instrumentation is needed.
+
+## Using your own Firebase project
+
+To point the platform at a different Firebase project, replace the `firebaseConfig` object in `src/firebase.ts` with the configuration from your Firebase Console.
+
+<Steps>
+  <Step title="Create a Firebase project">
+    Go to the [Firebase Console](https://console.firebase.google.com/) and create a new project. Enable Google Analytics when prompted to activate the Analytics features.
+  </Step>
+
+  <Step title="Register a web app">
+    Inside your project, click **Add app** and select the web platform (`</>`). Firebase will generate a configuration snippet for your app.
+  </Step>
+
+  <Step title="Replace the config object in firebase.ts">
+    Copy the generated config and replace the existing object:
+
+    ```typescript src/firebase.ts
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.firebasestorage.app",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID",
+      measurementId: "G-XXXXXXXXXX"
+    };
+    ```
+  </Step>
+
+  <Step title="Rebuild and deploy">
+    Firebase config is baked into the static bundle at build time. Run a fresh build after updating `firebase.ts`:
+
+    ```bash
+    npm run build
+    ```
+
+    Or rebuild the Docker image if you are deploying with containers. See [Deployment](/deployment) for details.
+  </Step>
+</Steps>
+
+## Additional monitoring tools
+
+The platform also includes Sentry and Mixpanel for complementary observability:
+
+| Tool | Package | Purpose |
+|---|---|---|
+| Firebase Analytics | `firebase` | Page views, user events, engagement metrics |
+| Sentry | `@sentry/react` | JavaScript error tracking and performance monitoring |
+| Mixpanel | `mixpanel-browser` | Product analytics and funnel tracking |
+
+Configure Sentry and Mixpanel through their respective SDKs and initialization calls. Firebase Analytics requires no additional setup beyond the `firebase.ts` initialization shown above.
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Admin analytics" icon="chart-bar" href="/admin/analytics">
+    View the analytics dashboard inside the Estudio admin panel.
+  </Card>
+  <Card title="Environment variables" icon="sliders" href="/configuration/environment">
+    Configure the API URL and other build-time settings.
+  </Card>
+</CardGroup>

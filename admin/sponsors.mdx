@@ -1,0 +1,122 @@
+---
+title: "Managing sponsor ads (cuñas) in the CMS"
+description: "How to add, reuse, and delete sponsor audio ads (cuñas) in the Estudio Radio América admin panel, and how they play back in sponsored podcast episodes."
+---
+
+Cuñas are short sponsor audio ads that play before podcast episodes in the Estudio Radio América platform. The admin panel maintains a centralized library of cuñas that can be reused across multiple episodes without re-uploading the same audio file each time.
+
+## The Cuñas (Sponsors) tab
+
+Open the **Cuñas (Sponsors)** tab from the sidebar to see the full sponsor library. Each sponsor card shows:
+
+- The sponsor's descriptive name
+- An inline audio player so you can preview the ad before assigning it
+- A program association label — either the program name or **Global** if not linked to a specific show
+- The date the sponsor was registered
+
+A delete button (trash icon) appears on each card. There is no edit action; to update a sponsor, delete it and create a new one.
+
+## Adding a sponsor from the library
+
+<Steps>
+  <Step title="Open the sponsor modal">
+    Click **Añadir Cuña** in the top-right corner of the Cuñas tab.
+  </Step>
+  <Step title="Enter a sponsor name">
+    Give the sponsor a clear, descriptive name so it is easy to identify when assigning it to episodes later (e.g. `Anuncio Banesco Navidad`).
+  </Step>
+  <Step title="Upload the audio file">
+    Paste a direct URL to the audio file, or click the upload button and select an MP3 or WAV file from your device. The file is sent to the server via `POST /api/upload` and the returned hosted URL is stored.
+  </Step>
+  <Step title="Optionally link to a program">
+    Select a program from the dropdown to associate the sponsor with a specific show. Leave the field set to **Global / Para cualquier programa** if the sponsor should appear across all programs.
+  </Step>
+  <Step title="Save">
+    Click **Guardar Cuña**. The sponsor card appears at the top of the library. It is now available to assign to any podcast episode.
+  </Step>
+</Steps>
+
+## Adding a sponsor during episode creation
+
+You can also register a new cuña and attach it to an episode in a single step from the video upload modal.
+
+<Steps>
+  <Step title="Open the video upload modal">
+    Click **Add New Video** or **Upload Video** and set the media format to **Audio / Podcast**.
+  </Step>
+  <Step title="Enable sponsorship">
+    Check the **¿Episodio Patrocinado? (Añadir Cuñas de Audio)** checkbox that appears in the orange-bordered sponsor section below the audio URL field.
+  </Step>
+  <Step title="Set the number of sponsor slots">
+    Select how many cuñas to include: 1, 2, or 3. A slot appears for each selection.
+  </Step>
+  <Step title="Fill each sponsor slot">
+    For each slot you have two options:
+
+    - **Select from library** — choose an existing cuña from the dropdown.
+    - **Upload new** — click **Nueva** to upload a fresh audio file. A prompt asks you to name the sponsor. The file is uploaded, saved to the global library, and immediately selected for this slot.
+  </Step>
+  <Step title="Save the episode">
+    Click **Guardar Video**. The episode is saved with the sponsor URLs bundled into its media URL field.
+  </Step>
+</Steps>
+
+## How sponsored episode URLs are stored
+
+When an audio episode has sponsors, its URL field is not a plain string. Instead, it is stored as a JSON array:
+
+```json
+["sponsor1_url.mp3", "sponsor2_url.mp3", "episode_url.mp3"]
+```
+
+The sponsor audio files come first in the array. The episode file is always the last element. The player reads this format and builds a sequential playback queue.
+
+<Note>
+This means the raw URL value for a sponsored episode looks like a JSON string in the database. The admin panel parses it automatically when you open the edit modal — you will see the sponsor slots pre-filled and the episode URL in the main audio field, not the raw JSON.
+</Note>
+
+## Playback behavior for sponsored episodes
+
+When a listener opens a sponsored podcast episode:
+
+1. The player reads the JSON array from the URL field.
+2. Each sponsor audio track plays in order before the episode begins.
+3. The progress bar displays a **Patrocinado** badge during the sponsor audio tracks.
+4. Once all sponsor tracks have played, the episode audio starts automatically.
+
+The listener cannot skip sponsor tracks.
+
+## Reusing sponsors across episodes
+
+Once a cuña is in the library, it can be selected from the sponsor slot dropdown in any episode upload or edit modal. The same audio URL is referenced by multiple episodes without duplicating the file.
+
+<Tip>
+Give sponsors names that identify both the advertiser and the campaign period (e.g. `Coca-Cola Diciembre 2024`) so you can distinguish them when the library grows.
+</Tip>
+
+## Deleting a sponsor
+
+Click the trash icon on a sponsor card in the Cuñas tab. The platform prompts for confirmation before deleting.
+
+<Warning>
+Deleting a sponsor from the library does **not** remove it from episodes where it has already been embedded. Those episodes continue to reference the original audio URL. If the audio file is removed from the server, those episodes will have broken sponsor audio but the episode itself will still play.
+</Warning>
+
+## Sponsor data model
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique identifier (timestamp-based) |
+| `name` | string | Descriptive label for the sponsor ad |
+| `url` | string | Hosted URL of the MP3 or WAV audio file |
+| `programId` | string (optional) | ID of the associated program, or empty for global |
+| `createdAt` | string | ISO 8601 timestamp of when the sponsor was registered |
+
+See the [Sponsors API reference](/api/sponsors) for endpoint details.
+
+## Related pages
+
+- [Admin dashboard overview](/admin/overview)
+- [Managing videos and programs](/admin/content-management)
+- [Sponsors API reference](/api/sponsors)
+- [Media upload API reference](/api/media-upload)

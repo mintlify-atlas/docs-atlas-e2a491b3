@@ -1,0 +1,77 @@
+---
+title: 'Media upload API — POST /api/upload'
+description: 'Reference for the multipart file upload endpoint that stores video, audio, and sponsor audio on the server and returns a public URL for use in other API calls.'
+---
+
+The upload endpoint accepts a single file via `multipart/form-data` and stores it on the server, returning a public URL. Use this URL when creating or updating videos, programs, or sponsors.
+
+**Authentication required.**
+
+---
+
+## POST /api/upload
+
+Uploads a file and returns its public URL.
+
+```bash
+curl -X POST https://your-domain.com/api/upload \
+  -F "file=@/path/to/your/episode.mp3"
+```
+
+### Request
+
+The request must use `multipart/form-data`. Do **not** set `Content-Type` manually — the HTTP client calculates the correct boundary automatically when you use form fields.
+
+<ParamField body="file" type="file" required>
+  The file to upload. The field name must be exactly `file`. Accepted types include MP3, MP4, WAV, M3U8, WebM, and other media formats supported by the browser. Image files are compressed client-side before upload.
+</ParamField>
+
+### Response
+
+`200 OK` with a JSON body:
+
+```json
+{
+  "url": "https://your-domain.com/media/episode-1717000000000.mp3"
+}
+```
+
+<ResponseField name="url" type="string" required>
+  The fully qualified public URL where the uploaded file can be accessed. Pass this value directly into the `url` field of a [Video](/api/videos) or the `url` field of a [Sponsor](/api/sponsors).
+</ResponseField>
+
+### Error responses
+
+| Status | Meaning |
+|---|---|
+| `413 Request Entity Too Large` | The file exceeds the Nginx `client_max_body_size` limit. |
+| `400 Bad Request` | The `file` field is missing from the request. |
+| `500 Internal Server Error` | The server could not write the file to disk. |
+
+---
+
+## Usage in the admin panel
+
+The admin UI calls `POST /api/upload` automatically in two scenarios:
+
+1. **Video/audio episode URL** — when the admin selects a non-image file for a video's URL field, the file is uploaded and the returned URL is stored in `newVideo.url`. If the uploaded file is an audio type, `isAudio` is set to `true` automatically.
+
+2. **Sponsor cuña** — when the admin uploads a new cuña, the file is uploaded and the returned URL is stored in the sponsor record via [POST /api/sponsors](/api/sponsors).
+
+Images (thumbnails, avatars, cover images) are **not** sent to `/api/upload`. They are compressed in the browser using a Canvas element (max width 600 px, JPEG 70% quality) and stored as base64 data URIs directly in the database fields.
+
+---
+
+## File size limit
+
+The maximum upload size is controlled by the Nginx `client_max_body_size` directive, **not** by the Node.js application. If you receive a `413` error, increase the limit in your Nginx configuration:
+
+```nginx
+client_max_body_size 500M;
+```
+
+See [Nginx configuration](/configuration/nginx) for full instructions.
+
+<Warning>
+  A `413` response is returned by Nginx **before** the request reaches the Node.js server. The error body may be HTML rather than JSON in this case.
+</Warning>

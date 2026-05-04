@@ -1,0 +1,120 @@
+---
+title: "Admin dashboard overview and navigation"
+description: "A complete tour of the Estudio Radio América admin panel: how to log in, navigate the sidebar, use the header bar, and access every section of the CMS."
+---
+
+The Estudio Radio América admin dashboard is the central control panel for all content operations on the platform. From here you can upload videos and audio, manage programs and podcasts, configure sponsor ads, and review platform analytics — all without touching the codebase.
+
+## Logging in
+
+Navigate to `/login` in your browser. Enter your credentials in the login form and click **INGRESAR AL PANEL**.
+
+| Field | Value |
+|-------|-------|
+| Email | `estudio@radioamerica.com.ve` (also accepted: `estudio@radiomerica.com.ve`) |
+| Password | Your admin password |
+
+<Note>
+Authentication is stored in `localStorage` under the key `admin_auth: 'true'`. Clearing browser storage or opening a private window will require you to log in again. There is no session expiry — you remain logged in until you click the logout button or clear storage manually.
+</Note>
+
+After a successful login you are redirected to `/admin` and the dashboard opens on the **Dashboard** tab.
+
+## Sidebar navigation
+
+The left sidebar is fixed at 256 px wide on desktop. It contains the main navigation for all dashboard sections.
+
+<CardGroup cols={2}>
+  <Card title="Dashboard" icon="gauge">
+    The landing tab. Shows the top three system metrics and the four most-viewed videos.
+  </Card>
+  <Card title="Video Library" icon="film">
+    Full grid of every published video and audio file. Supports filtering by category.
+  </Card>
+  <Card title="Programas" icon="microphone">
+    Grid of programs and podcast series in vertical poster format. Click a card to manage its episodes.
+  </Card>
+  <Card title="Cuñas (Sponsors)" icon="megaphone">
+    Library of all registered sponsor audio ads. Add, preview, and delete cuñas from here.
+  </Card>
+  <Card title="Analytics" icon="chart-line">
+    Play-time totals, monthly visits, daily average, and the top three most-consumed pieces of content.
+  </Card>
+  <Card title="Settings" icon="settings">
+    Edit your admin profile — name, avatar, bio, and social media links.
+  </Card>
+</CardGroup>
+
+The active tab is highlighted in red (`#C13535`). Click any tab to switch sections instantly without a page reload.
+
+### Sidebar footer
+
+At the bottom of the sidebar, below the navigation links, you will find:
+
+- **Upload Video** — a quick-action button that opens the video upload modal directly, equivalent to clicking **Add New Video** in the header.
+- Your admin profile display — shows your avatar, first name, last name, and the **Super Admin** role label.
+- A **logout** icon button that clears `admin_auth` from localStorage and redirects you to `/login`.
+
+## Top header bar
+
+The sticky header bar appears above the main content area on all tabs.
+
+| Element | Description |
+|---------|-------------|
+| Hamburger menu | Mobile only. Tap to open the sidebar with an overlay backdrop. |
+| Search field | Full-width input for filtering or searching within the current view. |
+| Notifications bell | Shows a small orange dot indicator when there are new notifications. |
+| **Add New Video** button | Opens the video/audio upload modal. Pre-fills the Program field if you are currently viewing a program detail. |
+
+## Dashboard tab
+
+The Dashboard tab is the default view when you first log in. It shows a live summary of platform content.
+
+### Metric cards
+
+Three cards display real-time data pulled directly from the content database:
+
+| Metric | What it shows |
+|--------|--------------|
+| **Total Videos** | Count of all published videos and audio files |
+| **Vistas Totales** | Sum of all view counts across every piece of content, displayed in thousands |
+| **Estado del Sistema** | System health indicator — displays "Óptimo" when all services are running |
+
+### Most-viewed videos
+
+Below the metric cards, the Dashboard tab shows the **four most-viewed videos** from your library, ranked by view count. Each card displays the thumbnail, category label, title, and a view count badge. You can click the edit icon on any card to open the edit modal directly.
+
+<Tip>
+The Video Library tab shows the same metric cards and the same video grid — but with all videos instead of only the top four. Use the Library tab when you need to find a specific piece of content to edit or delete.
+</Tip>
+
+## Mobile navigation
+
+On screens narrower than the `md` breakpoint (768 px), the sidebar is hidden by default.
+
+<Steps>
+  <Step title="Open the sidebar">
+    Tap the hamburger menu icon (three lines) in the top-left corner of the header bar.
+  </Step>
+  <Step title="Navigate">
+    The sidebar slides in from the left. A semi-transparent dark overlay covers the content area behind it.
+  </Step>
+  <Step title="Close the sidebar">
+    Tap any sidebar navigation tab, or tap the overlay backdrop, to close the sidebar and return to the main content.
+  </Step>
+</Steps>
+
+## Floating live radio player
+
+A floating indicator is fixed to the **bottom-right corner** of every page in the admin panel. It shows:
+
+- A pulsing red dot indicating **Radio en Vivo** (EN VIVO) status
+- A play/pause button that toggles the live Radio América 90.9 FM stream (`https://transmision.radioamerica.com.ve:8087/RA909FM`)
+
+You can monitor or listen to the live broadcast without leaving the admin panel.
+
+## Related pages
+
+- [Managing videos and programs](/admin/content-management)
+- [Managing sponsor ads (cuñas)](/admin/sponsors)
+- [Viewing analytics and performance](/admin/analytics)

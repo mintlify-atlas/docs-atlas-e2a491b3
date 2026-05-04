@@ -1,0 +1,224 @@
+---
+title: 'Videos API — manage episodes and content'
+description: 'Full reference for all five video endpoints: list, create, update, delete, and increment view count for episodes on Estudio Radio América.'
+---
+
+The Videos API stores every episode published on Estudio Radio América — whether a full video, audio podcast, short reel, or live stream. Each video can be associated with a [program](/api/programs), flagged as featured or live, and optionally carry an encoded sponsor playlist in its `url` field.
+
+See [Data models](/api/models) for the complete field reference.
+
+---
+
+## GET /api/videos
+
+Returns the full list of published videos ordered by creation date (newest first).
+
+**No authentication required.**
+
+```bash
+curl https://your-domain.com/api/videos
+```
+
+### Response
+
+Returns a JSON array of [Video](/api/models#video) objects.
+
+```json
+[
+  {
+    "id": "1717000000000",
+    "title": "Entrevista Exclusiva con el Alcalde",
+    "category": "Política",
+    "thumbnail": "https://your-domain.com/media/thumb.jpg",
+    "description": "Una conversación íntima sobre el futuro de la ciudad.",
+    "isFeatured": true,
+    "isLive": false,
+    "isShort": false,
+    "isAudio": false,
+    "url": "https://youtube.com/watch?v=abc123",
+    "duration": "45:30",
+    "views": 12400,
+    "createdAt": "2024-05-30T12:00:00.000Z",
+    "programId": "1716000000000",
+    "releaseDate": null,
+    "pressNoteUrl": null
+  }
+]
+```
+
+---
+
+## POST /api/videos
+
+Creates a new video or audio episode. The server assigns `id`, `views`, and `createdAt` automatically — do not include them in the request body.
+
+**Authentication required.**
+
+```bash
+curl -X POST https://your-domain.com/api/videos \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Entrevista Exclusiva con el Alcalde",
+    "category": "Política",
+    "thumbnail": "https://your-domain.com/media/thumb.jpg",
+    "description": "Una conversación íntima sobre el futuro de la ciudad.",
+    "isFeatured": true,
+    "isLive": false,
+    "isShort": false,
+    "isAudio": false,
+    "url": "https://youtube.com/watch?v=abc123",
+    "duration": "45:30",
+    "programId": "1716000000000",
+    "releaseDate": null,
+    "pressNoteUrl": null
+  }'
+```
+
+### Request body
+
+<ParamField body="title" type="string" required>
+  Display title for the episode.
+</ParamField>
+
+<ParamField body="category" type="string" required>
+  Content category. One of: `Historia`, `Personajes`, `Documentales`, `Sociedad`, `Deportes`, `Cultura`, `Política`.
+</ParamField>
+
+<ParamField body="thumbnail" type="string" required>
+  URL or base64 data URI for the episode thumbnail image. Images are compressed client-side before upload.
+</ParamField>
+
+<ParamField body="description" type="string" required>
+  Short description displayed under the episode title.
+</ParamField>
+
+<ParamField body="url" type="string" required>
+  Media URL. For regular episodes this is a YouTube link, direct MP4/M3U8 URL, or a URL returned by [POST /api/upload](/api/media-upload). For sponsored audio episodes this may be a JSON-encoded array — see [Data models](/api/models#sponsored-url-format).
+</ParamField>
+
+<ParamField body="duration" type="string" required>
+  Human-readable duration string, e.g. `"45:30"`. Use `"00:00"` as a placeholder for live streams.
+</ParamField>
+
+<ParamField body="isFeatured" type="boolean" default="false">
+  When `true`, the episode appears in the hero carousel on the homepage.
+</ParamField>
+
+<ParamField body="isLive" type="boolean" default="false">
+  When `true`, the episode is treated as a live broadcast and shown with an "EN VIVO" badge.
+</ParamField>
+
+<ParamField body="isShort" type="boolean" default="false">
+  When `true`, the episode appears in the Shorts & Reels vertical feed.
+</ParamField>
+
+<ParamField body="isAudio" type="boolean" default="false">
+  When `true`, the episode is rendered with an audio player instead of a video player.
+</ParamField>
+
+<ParamField body="programId" type="string">
+  ID of the parent [Program](/api/programs). Omit or set to `""` for standalone episodes.
+</ParamField>
+
+<ParamField body="releaseDate" type="string">
+  ISO 8601 date string for scheduled future releases. Episodes with a future `releaseDate` appear in the "Próximos Estrenos" section.
+</ParamField>
+
+<ParamField body="pressNoteUrl" type="string">
+  URL to an external press note or article associated with the episode.
+</ParamField>
+
+### Response
+
+`200 OK` — the created video object, including the server-assigned `id`, `views`, and `createdAt`.
+
+---
+
+## PUT /api/videos/:id
+
+Replaces an existing video with the full updated object. All fields must be present.
+
+**Authentication required.**
+
+```bash
+curl -X PUT https://your-domain.com/api/videos/1717000000000 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "1717000000000",
+    "title": "Entrevista Exclusiva con el Alcalde (Edición Extendida)",
+    "category": "Política",
+    "thumbnail": "https://your-domain.com/media/thumb-v2.jpg",
+    "description": "Versión sin cortes de la entrevista.",
+    "isFeatured": true,
+    "isLive": false,
+    "isShort": false,
+    "isAudio": false,
+    "url": "https://youtube.com/watch?v=abc123",
+    "duration": "58:10",
+    "views": 12400,
+    "createdAt": "2024-05-30T12:00:00.000Z",
+    "programId": "1716000000000",
+    "releaseDate": null,
+    "pressNoteUrl": "https://radioamerica.com.ve/nota/alcalde"
+  }'
+```
+
+### Path parameter
+
+<ParamField path="id" type="string" required>
+  The video ID to update.
+</ParamField>
+
+### Request body
+
+Same fields as [POST /api/videos](#post-api-videos), plus `id`, `views`, and `createdAt` (which the server preserves as-is).
+
+### Response
+
+`200 OK` — the updated video object.
+
+---
+
+## DELETE /api/videos/:id
+
+Permanently deletes a video record. This does not delete any uploaded media file from disk.
+
+**Authentication required.**
+
+```bash
+curl -X DELETE https://your-domain.com/api/videos/1717000000000
+```
+
+### Path parameter
+
+<ParamField path="id" type="string" required>
+  The video ID to delete.
+</ParamField>
+
+### Response
+
+`200 OK` on success.
+
+---
+
+## POST /api/videos/:id/view
+
+Increments the view counter for a video by 1. This endpoint is fire-and-forget — the frontend does not wait for the response. No authentication required.
+
+```bash
+curl -X POST https://your-domain.com/api/videos/1717000000000/view
+```
+
+### Path parameter
+
+<ParamField path="id" type="string" required>
+  The video ID whose view count should be incremented.
+</ParamField>
+
+### Response
+
+`200 OK`. The updated `views` value is not returned; fetch the video list again to see the new count.
+
+<Note>
+  Call this endpoint once when the user begins playback, not on every subsequent interaction. The frontend calls it automatically when the watch page mounts.
+</Note>

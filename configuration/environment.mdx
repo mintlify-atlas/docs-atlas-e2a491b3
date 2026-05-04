@@ -1,0 +1,118 @@
+---
+title: 'Environment variables for Estudio Radio América'
+description: 'Configure VITE_API_URL to point Estudio Radio América at the correct backend API. Covers defaults, .env files, Docker build args, and the Vite dev proxy.'
+---
+
+Estudio Radio América exposes a single public-facing environment variable that controls where the React frontend sends its API requests. Understanding how `VITE_API_URL` is resolved lets you connect the platform to the correct backend in every environment.
+
+## How API_URL is resolved
+
+The variable is read in `src/VideoContext.tsx` at module load time:
+
+```typescript VideoContext.tsx
+export const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.MODE === 'production' ? '/api' : 'http://localhost:3005/api');
+```
+
+The resolution order is:
+
+1. If `VITE_API_URL` is set, use it as-is.
+2. If the Vite build mode is `production`, fall back to `/api` (routed through the Nginx reverse proxy).
+3. Otherwise, fall back to `http://localhost:3005/api` for local development.
+
+<Info>
+  In production Docker builds, Vite sets `MODE` to `production` automatically, so the `/api`
+  fallback applies unless you override it with `VITE_API_URL`.
+</Info>
+
+## Environment variable reference
+
+| Variable | Default (development) | Default (production) | Description |
+|---|---|---|---|
+| `VITE_API_URL` | `http://localhost:3005/api` | `/api` | Base URL for all backend API requests. Must include the `/api` path segment. |
+
+<Note>
+  Vite only exposes variables prefixed with `VITE_` to client-side code. Variables without
+  this prefix are stripped from the browser bundle at build time and will be `undefined`
+  at runtime.
+</Note>
+
+## Setting the variable
+
+<Steps>
+  <Step title="Create a .env file in the project root">
+    For local development, create `.env` alongside `package.json`:
+
+    ```dotenv .env
+    VITE_API_URL=http://localhost:3005/api
+    ```
+
+    For a staging environment pointing at a remote server:
+
+    ```dotenv .env.staging
+    VITE_API_URL=https://api.your-domain.com/api
+    ```
+
+    Vite loads `.env`, `.env.local`, `.env.[mode]`, and `.env.[mode].local` automatically. Add `.env.local` to `.gitignore` to keep secrets out of version control.
+  </Step>
+
+  <Step title="Pass the variable as a Docker build argument">
+    When building the Docker image, inject `VITE_API_URL` as a build argument so Vite embeds it during the `npm run build` step:
+
+    ```bash
+    docker build \
+      --build-arg VITE_API_URL=https://api.your-domain.com/api \
+      -t estudio-radio-america .
+    ```
+
+    <Warning>
+      Because Vite bakes environment variables into the static bundle at build time, you
+      cannot override `VITE_API_URL` with a runtime `docker run -e` flag. The value must
+      be available during `npm run build`.
+    </Warning>
+  </Step>
+
+  <Step title="Verify the resolved URL">
+    Open the browser console after loading the app and run:
+
+    ```javascript
+    import.meta.env.VITE_API_URL
+    ```
+
+    If the variable was set correctly, you will see your value. If it returns `undefined`,
+    the app falls back to the mode-based default described above.
+  </Step>
+</Steps>
+
+## Development proxy
+
+In development mode, `vite.config.ts` configures a local proxy so that requests to `/api` are forwarded to `http://localhost:3005` even when using the default `http://localhost:3005/api` URL:
+
+```typescript vite.config.ts
+server: {
+  proxy: {
+    '/api': {
+      target: 'http://localhost:3005',
+      changeOrigin: true,
+    },
+    '/uploads': {
+      target: 'http://localhost:3005',
+      changeOrigin: true,
+    },
+  },
+},
+```
+
+This means you can run the frontend dev server and the Node.js backend on separate ports without CORS issues during development.
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Nginx configuration" icon="server" href="/configuration/nginx">
+    How the production reverse proxy routes /api requests to the Node.js backend.
+  </Card>
+  <Card title="Deployment" icon="rocket" href="/deployment">
+    Full Docker build and deployment instructions including build arguments.
+  </Card>
+</CardGroup>

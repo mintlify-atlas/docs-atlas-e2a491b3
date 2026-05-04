@@ -1,0 +1,134 @@
+---
+title: 'Profile API — manage station identity'
+description: 'GET and PUT /api/profile — read and update the station identity: host name, avatar, biography, and social links (YouTube, Instagram, Facebook, Twitter/X).'
+---
+
+The profile resource holds the identity information for the station — host name, avatar, short biography, and links to social media channels. This data is displayed publicly in the homepage social-media section and used in the admin sidebar.
+
+See [Data models](/api/models) for the complete field reference.
+
+---
+
+## GET /api/profile
+
+Returns the current station profile.
+
+**No authentication required.**
+
+```bash
+curl https://your-domain.com/api/profile
+```
+
+### Response
+
+Returns a single [UserProfile](/api/models#userprofile) object.
+
+```json
+{
+  "firstName": "Radio",
+  "lastName": "América",
+  "avatar": "https://your-domain.com/media/avatar.jpg",
+  "bio": "La voz de Venezuela desde 1953. Noticias, cultura y entretenimiento en 90.9 FM.",
+  "twitter": "@RadioAmericaVE",
+  "instagram": "@radioamericave",
+  "youtube": "https://youtube.com/@RadioAmericaVenezuela",
+  "facebook": "https://facebook.com/RadioAmericaVenezuela"
+}
+```
+
+<ResponseField name="firstName" type="string" required>
+  First name of the station host or brand name. Used in the admin sidebar and profile display.
+</ResponseField>
+
+<ResponseField name="lastName" type="string" required>
+  Last name or secondary brand label.
+</ResponseField>
+
+<ResponseField name="avatar" type="string" required>
+  URL or base64 data URI for the profile/avatar image.
+</ResponseField>
+
+<ResponseField name="bio" type="string">
+  Short biography or station description.
+</ResponseField>
+
+<ResponseField name="twitter" type="string">
+  Twitter/X handle (e.g. `@RadioAmericaVE`) or full profile URL.
+</ResponseField>
+
+<ResponseField name="instagram" type="string">
+  Instagram handle (e.g. `@radioamericave`) or full profile URL.
+</ResponseField>
+
+<ResponseField name="youtube" type="string">
+  Full YouTube channel URL.
+</ResponseField>
+
+<ResponseField name="facebook" type="string">
+  Full Facebook page URL.
+</ResponseField>
+
+---
+
+## PUT /api/profile
+
+Replaces the station profile with the provided object. All fields must be present.
+
+**Authentication required.**
+
+```bash
+curl -X PUT https://your-domain.com/api/profile \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Radio",
+    "lastName": "América",
+    "avatar": "https://your-domain.com/media/avatar.jpg",
+    "bio": "La voz de Venezuela desde 1953. Noticias, cultura y entretenimiento en 90.9 FM.",
+    "twitter": "@RadioAmericaVE",
+    "instagram": "@radioamericave",
+    "youtube": "https://youtube.com/@RadioAmericaVenezuela",
+    "facebook": "https://facebook.com/RadioAmericaVenezuela"
+  }'
+```
+
+### Request body
+
+<ParamField body="firstName" type="string" required>
+  First name of the station host or brand name.
+</ParamField>
+
+<ParamField body="lastName" type="string" required>
+  Last name or secondary brand label.
+</ParamField>
+
+<ParamField body="avatar" type="string" required>
+  URL or base64 data URI for the profile image. When uploading from the admin panel, the image is compressed client-side (max width 600 px, JPEG 70% quality) before being stored.
+</ParamField>
+
+<ParamField body="bio" type="string">
+  Short biography or station description displayed on the public site.
+</ParamField>
+
+<ParamField body="twitter" type="string">
+  Twitter/X handle or full profile URL. The frontend prepends `https://twitter.com/` if a bare handle is given.
+</ParamField>
+
+<ParamField body="instagram" type="string">
+  Instagram handle or full profile URL. The frontend prepends `https://instagram.com/` if a bare handle is given.
+</ParamField>
+
+<ParamField body="youtube" type="string">
+  Full YouTube channel URL. Displayed as a button in the social-media section only when this field is non-empty.
+</ParamField>
+
+<ParamField body="facebook" type="string">
+  Full Facebook page URL. Displayed as a button in the social-media section only when this field is non-empty.
+</ParamField>
+
+### Response
+
+`200 OK` — the updated profile object.
+
+<Tip>
+  Social media buttons on the homepage only appear when the corresponding field is a non-empty string. Set a field to `""` to hide its button without deleting the profile.
+</Tip>

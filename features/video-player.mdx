@@ -1,0 +1,131 @@
+---
+title: "Video and podcast player features"
+description: "Video and podcast player modes on Estudio Radio América: YouTube, Instagram, HLS, MP4 for video; Spotify, Zeno.fm, and direct audio files for podcasts."
+---
+
+The watch page at `/watch/:id` hosts two distinct player experiences depending on the content type: a **video player** for standard video content, and a **podcast/audio player** for audio episodes. This page covers both modes, their supported formats, and additional features such as view tracking and related content.
+
+## Two player modes
+
+<Tabs>
+  <Tab title="Video player">
+    The video player activates when a content item does **not** have the `isAudio` flag set. It renders a full-width player panel alongside a synopsis column.
+
+    ### Supported sources
+
+    <CardGroup cols={2}>
+      <Card title="YouTube embed" icon="youtube">
+        URLs matching the YouTube pattern are extracted using a regex and embedded via an `<iframe>` with `autoplay=1`. Supports standard watch URLs, short URLs (`youtu.be`), Shorts, and live links.
+      </Card>
+      <Card title="Instagram Reels embed" icon="instagram">
+        Instagram post, reel, and TV URLs are parsed and rendered using Instagram's `/embed` endpoint inside an `<iframe>`.
+      </Card>
+      <Card title="HLS streams (.m3u8)" icon="signal">
+        HLS streams are played with **hls.js** in supported browsers. Safari and iOS use native HLS playback as a fallback.
+      </Card>
+      <Card title="Direct video files" icon="film">
+        MP4, WebM, OGG, and data-URI video sources are handled by the native `<video>` element without any library.
+      </Card>
+    </CardGroup>
+
+    ### HLS stream protection
+
+    <Warning>
+      HLS streams originating from the Radio América server (`.m3u8` extension) are **protected**. The `nodownload` attribute is applied to the controls list and right-click is disabled on the video element to prevent direct download.
+    </Warning>
+
+    ### How to start playback
+
+    The video player does not auto-play on page load. A large play button overlays the thumbnail until the user clicks it, which sets `isVideoPlaying = true` and reveals the active player.
+  </Tab>
+  <Tab title="Podcast / Audio player">
+    The podcast player activates when a content item has `isAudio: true`. It replaces the video panel with a richly styled audio interface.
+
+    ### Supported audio sources
+
+    <CardGroup cols={2}>
+      <Card title="Spotify embed" icon="headphones">
+        Spotify track, episode, show, and playlist URLs are converted to the `open.spotify.com/embed/...` format and rendered in an `<iframe>` at 152 px height.
+      </Card>
+      <Card title="Zeno.fm embed" icon="radio">
+        Zeno.fm podcast and show URLs are parsed to produce a `zeno.fm/player/...` embed URL rendered at 200 px height.
+      </Card>
+      <Card title="Direct audio files" icon="music">
+        MP3, WAV, and other browser-native audio formats are handled by a hidden `<audio>` element with a custom player UI built on top.
+      </Card>
+    </CardGroup>
+
+    ### Custom player controls (direct files only)
+
+    <Steps>
+      <Step title="Progress bar">
+        A scrubable progress bar shows elapsed and total time. Seeking is blocked when a sponsor ad track is playing.
+      </Step>
+      <Step title="Volume control">
+        A horizontal slider adjusts playback volume from 0 to 100%. Default is 80%.
+      </Step>
+      <Step title="Skip controls">
+        Previous and next buttons appear in the control row. These are available for navigating between sponsor tracks in the playlist.
+      </Step>
+      <Step title="Fullscreen vinyl mode">
+        A dedicated **Expand** button opens a fullscreen overlay featuring a spinning vinyl record animation. The record spins while audio plays and pauses when audio is paused.
+      </Step>
+    </Steps>
+
+    <Info>
+      When a Spotify or Zeno.fm embed is detected, the custom play/pause button is replaced with a disabled state indicator and playback is controlled entirely within the embedded player panel.
+    </Info>
+  </Tab>
+</Tabs>
+
+## View count tracking
+
+Every time a watch page loads, the platform sends a fire-and-forget `POST` request to increment the view counter for that piece of content.
+
+<ParamField path="/api/videos/:id/view" type="POST">
+  Called automatically on component mount. No request body is required. The `id` is taken from the URL parameter.
+</ParamField>
+
+View counts are displayed in the admin panel and returned by the `/api/videos` endpoint.
+
+## Related videos
+
+Below the main player, a grid of **6 suggested videos** is shown. These are drawn from the full video catalog (excluding the current item) in the order they appear in the API response. Clicking any suggestion navigates to its watch page and scrolls the window back to the top.
+
+## Additional actions
+
+<CardGroup cols={3}>
+  <Card title="Press note button" icon="newspaper">
+    If the content has a `pressNoteUrl` set, a "LEA LA NOTA COMPLETA AQUI" button appears in the synopsis area, linking out to the associated article.
+  </Card>
+  <Card title="Add to list" icon="bookmark">
+    A list button (`add` icon) appears in the action row for bookmarking content. This is a UI element available to logged-in users.
+  </Card>
+  <Card title="Share" icon="share">
+    A share button appears alongside the other action buttons in the synopsis column.
+  </Card>
+</CardGroup>
+
+## SEO metadata
+
+Each watch page injects the following meta tags via `react-helmet-async`:
+
+| Tag | Value |
+|---|---|
+| `<title>` | `{video.title} \| Estudio Radio América` |
+| `og:title` | Same as title |
+| `og:description` | `video.description` |
+| `og:image` | `video.thumbnail` or `/logo_colors.png` |
+| `og:type` | `video.other` (video player) |
+| `twitter:card` | `summary_large_image` |
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Live radio streaming" href="/features/live-radio">
+    Understand how the persistent Radio América 90.9 FM bar coexists with the video and podcast player.
+  </Card>
+  <Card title="API: Videos" href="/api/videos">
+    Full reference for the videos API, including the view increment endpoint.
+  </Card>
+</CardGroup>
